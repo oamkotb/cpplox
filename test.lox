@@ -1,0 +1,13 @@
+a=1;
+b=123;
+c=45.67;
+// This is a comment
+d="hello";
+/*
+This
+is
+a
+block
+comment
+*/
+

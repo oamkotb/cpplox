@@ -14,11 +14,13 @@ class Scanner{
         std::string::size_type start = 0;
         std::string::size_type current = 0;
         int line = 1;
-    
+        bool block_comment = false;
+
         bool isAtEnd();
         bool isDigit(char c);
         bool isAlpha(char c);
         bool isAlphaNumeric(char c);
+        void blockComment();
         void number();
         void string();
         void identifier();

@@ -63,7 +63,7 @@ void Scanner::scanToken(){
                     // A comment goes until the end of the line.
                     while (peek() != '\n' && !isAtEnd()) advance();
                   } else if (match('*')){
-                    while (peek() != '*' && peekNext() != '/' && !isAtEnd()) advance(); 
+                      blockComment();
                   }
                   else {
                     addToken(SLASH);
@@ -92,6 +92,25 @@ void Scanner::scanToken(){
                   Lox::error(line, "Unexpected character.");
                   }
                   break;
+    }
+}
+
+void Scanner::blockComment(){
+    while (true){
+        if (isAtEnd()){
+            Lox::error(line, "Undetermined block comment.");
+            return;
+        }
+
+        if (peek() == '*' && peekNext() == '/'){
+            advance(); // consume the '*'
+            advance(); // consume the '/'
+            break;
+        }
+        if (peek() == '\n'){
+            line++;
+        }
+        advance();
     }
 }
 

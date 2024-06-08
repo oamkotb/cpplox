@@ -17,7 +17,7 @@ void Scanner::scanToken(){
     char c = advance();
     switch(c) {
         case '(': addToken(LEFT_PAREN); break;
-        case ')': addToken(RIGHT_PAREN): break;
+        case ')': addToken(RIGHT_PAREN); break;
         case '{': addToken(LEFT_BRACE); break;
         case '}': addToken(RIGHT_BRACE); break;
         case ',': addToken(COMMA); break;
@@ -44,6 +44,6 @@ void Scanner::addToken(TokenType type){
 }
 
 void Scanner::addToken(TokenType type, const Token::Literal& literal){
-    String text = source.substr(start, current-start);
+    std::string text = source.substr(start, current-start);
     tokens.emplace_back(type, text, literal, line);
 }

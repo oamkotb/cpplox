@@ -12,7 +12,7 @@ class Scanner{
         int current = 0;
         int line = 1;
 
-        bool isAtEnd() const;
+        bool isAtEnd();
         void scanToken();
         char advance();
         void addToken(TokenType type);

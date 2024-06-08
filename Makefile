@@ -2,7 +2,7 @@
 CC=g++
 
 # Define any compile-time flags
-CFLAGS=-Wall -g
+CFLAGS=-Wall -g -std=c++20  # Added C++20 standard flag
 
 # Define any directories containing header files other than /usr/include
 INCLUDES=-Iinclude
@@ -11,7 +11,7 @@ INCLUDES=-Iinclude
 SRCS=$(wildcard src/*.cc)
 
 # Define the C object files 
-OBJS=$(SRCS:src/%.cpp=build/%.o)
+OBJS=$(SRCS:src/%.cc=build/%.o)  # Changed from %.cpp to %.cc
 
 # Define the executable file 
 MAIN=build/cpplox
@@ -24,7 +24,7 @@ all: $(MAIN)
 $(MAIN): $(OBJS) 
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(MAIN) $(OBJS)
 
-build/%.o: src/%.cpp
+build/%.o: src/%.cc  # Changed from %.cpp to %.cc
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 clean:

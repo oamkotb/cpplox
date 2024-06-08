@@ -1,6 +1,7 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include "Token.h"
 
 class Scanner {
 private:

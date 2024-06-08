@@ -10,8 +10,8 @@ public:
   Scanner(std::string source);
   ~Scanner();
 
-  void scanTokens(std::vector<Token> &tokens);
-  
+  void scanTokens(std::vector<BaseToken> token);
+
 private:
-  std::string source;
+  const std::string _source;
 };

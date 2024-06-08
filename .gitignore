@@ -1,5 +1,5 @@
 .vscode
 src/testing.cc
 .clangd
-.cache/clangd/index
+.cache
 compile_commands.json

@@ -2,19 +2,9 @@
 #include <string>
 #include <vector>
 
-// Assuming TokenType and Token are defined somewhere
-enum TokenType {
-    AND, CLASS, ELSE, FALSE, FOR, FUN, IF, NIL, OR, PRINT, SUPER, THIS, TRUE, VAR, WHILE
-};
-
-class Token {
-    // Implementation of Token class
-};
-
 class Scanner {
 private:
     std::unordered_map<std::string, TokenType> keywords;
-
     std::string source;
     std::vector<Token> tokens;
 
@@ -46,10 +36,7 @@ public:
     Scanner(std::string source) : source(source) {
         initializeKeywords();
     }
-
-    // Other methods of Scanner class
 };
-
 int main() {
     // Example usage
     Scanner scanner("source code here");

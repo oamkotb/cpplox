@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+
 #include "Token.h"
 
 class Scanner{

@@ -1,45 +1,49 @@
-#include <unordered_map>
-#include <string>
-#include <vector>
-#include "Token.h"
+#include "Scanner.h"
 
-class Scanner {
-private:
-    std::unordered_map<std::string, TokenType> keywords;
-    std::string source;
-    std::vector<Token> tokens;
+Scanner::Scanner(const std::string& source) : source(source){}
 
-    int start = 0;
-    int current = 0;
-    int line = 1;
-
-    // Initialize keywords in a private method
-    void initializeKeywords() {
-        keywords["and"] = AND;
-        keywords["class"] = CLASS;
-        keywords["else"] = ELSE;
-        keywords["false"] = FALSE;
-        keywords["for"] = FOR;
-        keywords["fun"] = FUN;
-        keywords["if"] = IF;
-        keywords["nil"] = NIL;
-        keywords["or"] = OR;
-        keywords["print"] = PRINT;
-        keywords["super"] = SUPER;
-        keywords["this"] = THIS;
-        keywords["true"] = TRUE;
-        keywords["var"] = VAR;
-        keywords["while"] = WHILE;
+std::vector<Token> Scanner::scanTokens(){
+    while (!isAtEnd()){
+        // We are the beginning of the next lexeme.
+        start = current; 
+        scanToken();
     }
 
-public:
-    // Constructor
-    Scanner(std::string source) : source(source) {
-        initializeKeywords();
+    tokens.emplace_back(END, "", std::monostate(), line);
+    return tokens;
+}
+
+void Scanner::scanToken(){
+    char c = advance();
+    switch(c) {
+        case '(': addToken(LEFT_PAREN); break;
+        case ')': addToken(RIGHT_PAREN): break;
+        case '{': addToken(LEFT_BRACE); break;
+        case '}': addToken(RIGHT_BRACE); break;
+        case ',': addToken(COMMA); break;
+        case '.': addToken(DOT); break;
+        case '-': addToken(MINUS); break;
+        case '+': addToken(PLUS); break;
+        case ';': addToken(SEMICOLON); break;
+        case '*': addToken(STAR); break;
+
+        default:
+                  break;
     }
-};
-int main() {
-    // Example usage
-    Scanner scanner("source code here");
-    return 0;
+}
+bool Scanner::isAtEnd(){
+    return current >= source.length();
+}
+
+char Scanner::advance(){
+    return source.at(current++);
+} 
+
+void Scanner::addToken(TokenType type){
+    addToken(type, std::monostate());
+}
+
+void Scanner::addToken(TokenType type, const Token::Literal& literal){
+    String text = source.substr(start, current-start);
+    tokens.emplace_back(type, text, literal, line);
 }

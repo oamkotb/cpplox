@@ -1,28 +1,35 @@
-# Compiler
-CXX = g++
+# Define the compiler to use
+CC=g++
 
-# Compiler flags
-CXXFLAGS = -std=c++11 -Wall -Iinclude
+# Define any compile-time flags
+CFLAGS=-Wall -g
 
-# Source files
-SRC = $(wildcard src/*.cc)
+# Define any directories containing header files other than /usr/include
+INCLUDES=-Iinclude
 
-# Object files
-OBJ = $(SRC:.cc=.o)
+# Define the C source files
+SRCS=$(wildcard src/*.cpp)
 
-# Output binary
-TARGET = build/cpplox
+# Define the C object files 
+OBJS=$(SRCS:src/%.cpp=build/%.o)
 
-# Rules
-all: $(TARGET)
+# Define the executable file 
+MAIN=build/cpplox
 
-$(TARGET): $(OBJ)
-	$(CXX) -o $@ $^
+.PHONY: clean
 
-%.o: %.cc
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+all: $(MAIN)
+	@echo  Compiling cpplox...
+
+$(MAIN): $(OBJS) 
+	$(CC) $(CFLAGS) $(INCLUDES) -o $(MAIN) $(OBJS)
+
+# This is a suffix replacement rule for building .o's from .cpp's
+# It uses automatic variables $<: the name of the prerequisite of 
+# the rule(a .cpp file) and $@: the name of the target of the rule (a .o file)
+# (see the gnu make manual section about automatic variables)
+build/%.o: src/%.cpp
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 clean:
-	rm -f $(OBJ) $(TARGET)
-
-.PHONY: all clean
+	$(RM) build/* $(MAIN)

@@ -12,12 +12,11 @@ std::ostream& operator<<(std::ostream& os, const Token& token)
     // std::visit is used with a lambda that handles the different types within the
     // std::variant
     std::visit([&os](auto&& arg) { 
-        if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, std::monostate>) {
+        if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, std::monostate>)
             os << "null";
-        } else {
+        else
             os << arg;
-        }
     }, token.literal);
-    os << " " << token.line;
+    os << token.line;
     return os;
 }

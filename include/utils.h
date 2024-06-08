@@ -11,6 +11,9 @@ namespace Lox
 {
   /** Flag to indicate if an error has occurred. */
   static bool had_error = false;
+
+  void error(int line, std::string message);
+  
   /**
    * @brief Prints an error message to standard error stream.
    * 
@@ -22,15 +25,4 @@ namespace Lox
    * @param message The error message to be reported.
    */
   void report(int line, std::string where, std::string message);
-
-  /**
-   * @brief Reports an error with a given line number and message.
-   * 
-   * This function is an inline wrapper that calls the report function.
-   * 
-   * @param line The line number where the error occurred.
-   * @param message The error message to be reported.
-   */
-  void error(int line, std::string message);
-
 }

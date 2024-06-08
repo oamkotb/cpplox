@@ -15,8 +15,7 @@ class Scanner{
         int start = 0;
         int current = 0;
         int line = 1;
-        
-
+    
         bool isAtEnd();
         bool isDigit(char c);
         bool isAlpha(char c);

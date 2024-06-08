@@ -1,0 +1,1 @@
+g++ src/testing.cc src/Token.cc -Iinclude -o build/cpplox

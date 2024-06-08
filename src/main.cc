@@ -1,5 +1,5 @@
 /**
- * @file main.cpp
+ * @file main.cc
  * @brief Entry point for the cpplox interpreter.
  *
  * This file contains the main function which is the entry point for the cpplox interpreter.
@@ -92,9 +92,6 @@ void runPrompt()
     run(line);
     Lox::had_error = false;
 
-    // End loop on end-of-file.
-    if (std::cin.eof()) break; 
-    
     std::cout << "> ";
   }
 }
@@ -110,7 +107,7 @@ int main(int argc, char* argv[])
   /**
    * Incorrect usage: too many command line arguments.
    */
-  if (argc > 1)
+  if (argc > 2)
   {
     std::cout << "Usage: cpplox [script]" << std::endl;
     return EXIT_FAILURE;
@@ -118,9 +115,9 @@ int main(int argc, char* argv[])
   /**
    * Correct usage: one argument, run the script file.
    */
-  else if (argc == 1)
+  else if (argc == 2)
   {
-    runFile(argv[0]);
+    runFile(argv[1]);
     if (Lox::had_error) return EXIT_FAILURE;
   }
   /**

@@ -4,16 +4,15 @@
 #include <vector>
 #include <unordered_map>
 #include "Token.h"
-#include "utils.h"
 
 class Scanner{
     private: 
-        const std:: string source;
+        const std::string source;
         std::vector<Token> tokens;
         const std::unordered_map<std::string, TokenType> keywords;
 
-        int start = 0;
-        int current = 0;
+        std::string::size_type start = 0;
+        std::string::size_type current = 0;
         int line = 1;
     
         bool isAtEnd();

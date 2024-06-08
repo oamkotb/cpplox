@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_map>
 #include "Token.h"
+#include "utils.h"
 
 class Scanner{
     private: 

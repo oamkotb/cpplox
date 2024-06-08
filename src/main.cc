@@ -11,7 +11,7 @@
 #include <sstream>
 #include <vector>
 
-#include "error_handling.h"
+#include "utils.h"
 #include "Scanner.h"
 #include "Token.h"
 
@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
   else if (argc == 1)
   {
     runFile(argv[0]);
-    if (had_error) return EXIT_FAILURE;
+    if (Lox::had_error) return EXIT_FAILURE;
   }
   /**
    * Correct usage: no arguments, run in interactive mode.
@@ -62,7 +62,7 @@ void runFile(std::string path)
   if (!script)
   {
     std::cerr << "Error opening file: " << path << std::endl;
-    had_error = true;
+    Lox::had_error = true;
     return;
   }
 
@@ -80,7 +80,7 @@ void runFile(std::string path)
   catch (const std::exception& e)
   {
     std::cerr << "Exception: " << e.what() << std::endl;
-    had_error = true;
+    Lox::had_error = true;
     return;
   }
 }
@@ -104,7 +104,7 @@ void runPrompt()
 
     // Execute command and continue even on encountering errors.
     run(line);
-    had_error = false;
+    Lox::had_error = false;
 
     // End loop on end-of-file.
     if (std::cin.eof()) break; 

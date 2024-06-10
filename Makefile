@@ -2,7 +2,7 @@
 CC=g++
 
 # Define any compile-time flags
-CFLAGS=-Wall -g -std=c++20  # Added C++20 standard flag
+CFLAGS=-Wall -Wextra -g -std=c++20  # Added C++20 standard flag and -Wextra
 
 # Define any directories containing header files other than /usr/include
 INCLUDES=-Iinclude
@@ -18,7 +18,7 @@ MAIN=build/cpplox
 
 .PHONY: clean debug
 
-all: $(MAIN)
+all: $(MAIN) clean_objs
 	@echo  Compiling cpplox...
 
 $(MAIN): $(OBJS) 
@@ -29,6 +29,9 @@ build/%.o: src/%.cc  # Changed from %.cpp to %.cc
 
 clean:
 	$(RM) build/* $(MAIN)
+
+clean_objs:
+	$(RM) $(OBJS)
 
 debug:
 	@echo "CC: $(CC)"

@@ -1,28 +1,31 @@
-#pragma once
-
-#include <string>
-
 /** 
  * @file utils.h
  * @brief Utility functions for error reporting in the Lox interpreter.
  */
 
+#pragma once
+
+#include <iostream>
+
 namespace Lox
 {
-  /** Flag to indicate if an error has occurred. */
-  static bool had_error = false;
-
-  void error(int line, std::string message);
-  
   /**
-   * @brief Prints an error message to standard error stream.
-   * 
-   * This function sets the had_error flag and prints an error message
-   * formatted with the line number and location of the error.
-   * 
+   * @brief Flag to indicate if an error has occurred.
+   */
+  extern bool had_error;
+
+  /**
+   * @brief Reports an error with the given message and location.
    * @param line The line number where the error occurred.
-   * @param where Additional information about the error location.
-   * @param message The error message to be reported.
+   * @param where The context or location of the error.
+   * @param message The error message.
    */
   void report(int line, std::string where, std::string message);
+
+  /**
+   * @brief Reports a general error with the given message and location.
+   * @param line The line number where the error occurred.
+   * @param message The error message.
+   */
+  void error(int line, std::string message);
 }

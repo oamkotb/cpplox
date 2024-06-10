@@ -15,6 +15,8 @@
 #include "Scanner.h"
 #include "Token.h"
 
+bool had_error = false; // Extern
+
 /**
  * @brief Executes the scanning process on the source code.
  *
@@ -22,7 +24,7 @@
  * It then scans the source code for tokens and prints each token to the standard output.
  * @param source The source code to scan.
  */
-void run(std::string source)
+void run(const std::string& source)
 {
   // Initialize the scanner with the source code.
   Scanner scanner(source);
@@ -48,7 +50,7 @@ void runFile(const std::string& path)
   if (!script)
   {
     std::cerr << "Error opening file: " << path << std::endl;
-    Lox::had_error = true;
+    had_error = true;
     return;
   }
 
@@ -66,7 +68,7 @@ void runFile(const std::string& path)
   catch (const std::exception& e)
   {
     std::cerr << "Exception: " << e.what() << std::endl;
-    Lox::had_error = true;
+    had_error = true;
     return;
   }
 }
@@ -90,7 +92,7 @@ void runPrompt()
 
     // Execute command and continue even on encountering errors.
     run(line);
-    Lox::had_error = false;
+    had_error = false;
 
     // End loop on end-of-file.
     if (std::cin.eof()) break; 
@@ -107,10 +109,13 @@ void runPrompt()
  */
 int main(int argc, char* argv[])
 {
+  // Flag to indicate if an error has occurred.
+  had_error = false;
+
   /**
    * Incorrect usage: too many command line arguments.
    */
-  if (argc > 1)
+  if (argc > 2)
   {
     std::cout << "Usage: cpplox [script]" << std::endl;
     return EXIT_FAILURE;
@@ -118,18 +123,16 @@ int main(int argc, char* argv[])
   /**
    * Correct usage: one argument, run the script file.
    */
-  else if (argc == 1)
+  else if (argc == 2)
   {
-    runFile(argv[0]);
-    if (Lox::had_error) return EXIT_FAILURE;
+    runFile(argv[1]);
+    if (had_error) return EXIT_FAILURE;
   }
   /**
    * Correct usage: no arguments, run in interactive mode.
    */
   else
-  {
     runPrompt();
-  }
 
   return EXIT_SUCCESS;
 }

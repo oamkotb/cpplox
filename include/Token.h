@@ -67,11 +67,11 @@ class Token
 {
     public:
         // std::variant is a type safe union monostate acts as empty 
-        using Literal = std::variant<std::monostate, std::string, double>;
+        using LiteralValue = std::variant<std::monostate, std::string, double>;
 
         const TokenType type; /**< Type of the token. */
         const std::string lexeme; /**< Lexeme of the token. */
-        const Literal literal; /**< Literal value of the token, if applicable. */
+        const LiteralValue literal; /**< Literal value of the token, if applicable. */
         const int line; /**< Line number in the source where the token was found. */
 
         /**
@@ -82,7 +82,7 @@ class Token
          * @param line The line number where the token was found.
          */
         Token(const TokenType& type, const std::string& lexeme, 
-                const Literal& literal, const int& line):
+                const LiteralValue& literal, const int& line):
             type(type), lexeme(lexeme), literal(literal), line(line) {}
 
         /**

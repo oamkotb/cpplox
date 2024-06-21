@@ -39,24 +39,6 @@ public:
     std::vector<Token> scanTokens();
 
 private: 
-    /// The source code to be scanned.
-    std::string _source;
-    
-    /// Start position of the current lexeme being scanned.
-    size_t _start = 0;
-
-    /// Current position in the source code.
-    size_t _current = 0;
-
-    /// Current line number in the source code.
-    size_t _line = 1;
-
-    /// Vector to store the scanned tokens.
-    std::vector<Token> _tokens;
-
-    /// Unordered map of keywords and their corresponding token types.
-    const std::unordered_map<std::string, TokenType> _keywords;
-
     /**
      * @brief Scans the next token from the source code.
      */
@@ -73,7 +55,7 @@ private:
      * @param type The type of the token to be added.
      * @param literal The literal value of the token.
      */
-    void addToken(const TokenType& type, const Token::Literal& literal);
+    void addToken(const TokenType& type, const Token::LiteralValue& literal);
 
     /**
      * @brief Checks if the scanner has reached the end of the source code.
@@ -146,4 +128,22 @@ private:
      * @return The next character in the source code.
      */
     char peekNext();
+
+    /// The source code to be scanned.
+    std::string _source;
+    
+    /// Start position of the current lexeme being scanned.
+    size_t _start = 0;
+
+    /// Current position in the source code.
+    size_t _current = 0;
+
+    /// Current line number in the source code.
+    size_t _line = 1;
+
+    /// Vector to store the scanned tokens.
+    std::vector<Token> _tokens;
+
+    /// Unordered map of keywords and their corresponding token types.
+    const std::unordered_map<std::string, TokenType> _keywords;
 };

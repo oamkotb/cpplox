@@ -5,29 +5,34 @@
 template <class R>
 class Expr
 {
+  class Binary;
+  class Grouping;
+  class Literal;
+  class Unary;
+
   struct Visitor
   {
-    R visitBinaryExpr(const Binary& expr);
-    R visitGroupingExpr(const Grouping& expr);
-    R visitLiteralExpr(const Literal& expr);
+    virtual R visitBinaryExpr(const Binary& expr);
+    virtual R visitGroupingExpr(const Grouping& expr);
+    virtual R visitLiteralExpr(const Literal& expr);
   };
 
   virtual R accept(Visitor visitor);
 
-  class Binary
+  class Binary : public Expr<R>
   {
   public:
     Binary(const Expr*& left, const Token& oper, const Expr*& right):
       left(left), oper(oper), right(right) {}
     
-    R accept(const Visitor& visitor) { return visitior.visitBinaryExpr(this); }
+    R accept(const Visitor& visitor) { return visitor.visitBinaryExpr(this); }
 
     const Expr* left;
     const Token oper;
     const Expr* right;
   };
 
-  class Grouping
+  class Grouping : public Expr<R>
   {
   public:
     Grouping(const Expr*& expression):
@@ -38,7 +43,7 @@ class Expr
     const Expr* expression;
   };
 
-  class Literal
+  class Literal : public Expr<R>
   {
   public:
     Literal(const Token::LiteralValue& value):
@@ -48,7 +53,7 @@ class Expr
     const Token::LiteralValue value;
   };
 
-  class Unary
+  class Unary : public Expr<R>
   {
   public:
     Unary(const Token& oper, const Expr*& right):

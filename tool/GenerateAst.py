@@ -1,76 +1,80 @@
 import sys
-from typing import List
-from pathLib import Path
+import os
+from typing import List, TextIO
 
-defineVisitor(
-    path: Path,
+
+def defineVisitor(
+    file: TextIO,
     base_name: str,
     types: List[str]
 ):
-    path.write_text("  interface Visitor<R> {\n")
+    file.write("  interface Visitor<R> {\n")
 
     for type_info in types:
-        type_name: str = type.split(':')[0].strip()
-        path.wrte_text(f"  R visit{type_name}{base_name}({type_name} {base_name.lower()});\n")
+        type_name: str = type_info.split(':')[0].strip()
+        file.write(f"  R visit{type_name}{base_name}({type_name} {base_name.lower()});\n")
 
-    path.write_text("  }\n")
+    file.write("  }\n")
 
 
 def defineType(
-    path: Path,
+    file: TextIO,
     base_name: str,
     class_name: str,
     fields: str
 ):
 
     # Constructor
-    path.write_text(f"    {class_name}({fields}) {{\n")
+    file.write(f"    {class_name}({fields}) {{\n")
 
     # Store parameters in fields.
     field_list: List[str] = fields.split(', ')
     for field in field_list:
         name: str = field.split(" ")[1]
-        path.write_text(f"        this.{name} = {name};\n")
+        file.write(f"        this.{name} = {name};\n")
 
-    path.write_text("    }\n")
+    file.write("    }\n")
 
     # Fields.
     for field in field_list:
-        path.write_text(f"   final {field};\n")
+        file.write(f"   final {field};\n")
 
-    path.write_text("  }\n")
+    file.write("  }\n")
 
     # visitor pattern.
-    path.write_text("\n")
-    path.write_text("    @Override\n")
-    path.write_text("    <R> R accept(Visitor<R> visitor) {\n")
-    path.write_text("      return visitor.visit\n")
+    file.write("\n")
+    file.write("    @Override\n")
+    file.write("    <R> R accept(Visitor<R> visitor) {\n")
+    file.write(f"      return visitor.visit{class_name}{base_name}(this);\n")
+    file.write("    }")
 
 
 def defineAst(
         output_dir: str,
         base_name: str,
-        types: List[str]):
+        types: List[str]
+):
 
-    path: Path = Path(output_dir) / base_name / ".java"
-    path.write_text("package com.cradtinginterpreters.lox;\n")
-    path.wrtie_text("import java.util.List;\n")
-    path.write_text(f"abstract class {base_name} {{\n")
+    path: str = os.path.join(output_dir, f"{base_name}.java")
+    with open(path, 'w') as file:
+        file.write("package com.cradtinginterpreters.lox;\n")
+        file.write("import java.util.List;\n")
+        file.write(f"abstract class {base_name} {{\n")
 
-    defineVisitor(path, base_name, types)
+        defineVisitor(file, base_name, types)
 
-    # The AST classes.
-    for type_info in types:
-        splitted_types: List[str] = type_info.split(':')
-        class_name: str = splitted_types[0].strip()
-        fields: str = splitted_types[1].strip()
-        defineType(path, base_name, class_name, fields)
+        # The AST classes.
+        for type_info in types:
+            splitted_types: List[str] = type_info.split(':')
+            class_name: str = splitted_types[0].strip()
+            fields: str = splitted_types[1].strip()
+            defineType(file, base_name, class_name, fields)
 
-    # The base accept() method.
-    path.write_text("\n")
-    path.write_text("    abstract <R> R accept(Visit<R> visitor);\n")
+        # The base accept() method.
+        file.write("\n")
+        file.write("    abstract <R> R accept(Visit<R> visitor);\n")
 
-    path.write_text("}\n")
+        file.write("}\n")
 
 
 def main():

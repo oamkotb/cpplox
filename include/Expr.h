@@ -5,6 +5,7 @@
 template <class R>
 class Expr
 {
+public:
   class Binary;
   class Grouping;
   class Literal;
@@ -12,12 +13,13 @@ class Expr
 
   struct Visitor
   {
-    virtual R visitBinaryExpr(const Binary& expr);
-    virtual R visitGroupingExpr(const Grouping& expr);
-    virtual R visitLiteralExpr(const Literal& expr);
+    virtual R visitBinaryExpr(const Binary& expr) = 0;
+    virtual R visitGroupingExpr(const Grouping& expr) = 0;
+    virtual R visitLiteralExpr(const Literal& expr) = 0;
+    virtual R visitUnaryExpr(const Unary& expr) = 0;
   };
 
-  virtual R accept(Visitor visitor);
+  virtual R accept(Visitor& visitor) = 0;
 
   class Binary : public Expr<R>
   {
@@ -25,7 +27,10 @@ class Expr
     Binary(const Expr*& left, const Token& oper, const Expr*& right):
       left(left), oper(oper), right(right) {}
     
-    R accept(const Visitor& visitor) { return visitor.visitBinaryExpr(this); }
+    R accept(const Visitor& visitor) override
+    {
+      return visitor.visitBinaryExpr(this);
+    }
 
     const Expr* left;
     const Token oper;
@@ -38,7 +43,10 @@ class Expr
     Grouping(const Expr*& expression):
       expression(expression) {}
     
-    R accept(const Visitor& visitor) { return visitor.visitGroupingExpr(this); }
+    R accept(const Visitor& visitor) override
+    { 
+      return visitor.visitGroupingExpr(this);
+    }
 
     const Expr* expression;
   };
@@ -49,7 +57,11 @@ class Expr
     Literal(const Token::LiteralValue& value):
       value(value) {}
     
-    R accept(const Visitor& visitor) { return visitor.visitLiteralExpr(this); }
+    R accept(const Visitor& visitor) override
+    {
+      return visitor.visitLiteralExpr(this);
+    }
+
     const Token::LiteralValue value;
   };
 
@@ -59,7 +71,10 @@ class Expr
     Unary(const Token& oper, const Expr*& right):
       oper(oper), right(right) {}
     
-    R accept(const Visitor& visitor) { return visitor.visitUnaryExpr(this); }
+    R accept(const Visitor& visitor) override
+    {
+      return visitor.visitUnaryExpr(this);
+    }
 
     const Token oper;
     const Expr* right;

@@ -26,7 +26,7 @@ public:
   public:
     Binary(const Expr*& left, const Token& oper, const Expr*& right):
       left(left), oper(oper), right(right) {}
-    
+
     R accept(const Visitor& visitor) override
     {
       return visitor.visitBinaryExpr(this);
@@ -42,9 +42,9 @@ public:
   public:
     Grouping(const Expr*& expression):
       expression(expression) {}
-    
+
     R accept(const Visitor& visitor) override
-    { 
+    {
       return visitor.visitGroupingExpr(this);
     }
 
@@ -56,7 +56,7 @@ public:
   public:
     Literal(const Token::LiteralValue& value):
       value(value) {}
-    
+
     R accept(const Visitor& visitor) override
     {
       return visitor.visitLiteralExpr(this);
@@ -70,7 +70,7 @@ public:
   public:
     Unary(const Token& oper, const Expr*& right):
       oper(oper), right(right) {}
-    
+
     R accept(const Visitor& visitor) override
     {
       return visitor.visitUnaryExpr(this);

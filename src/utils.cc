@@ -13,8 +13,8 @@ namespace Lox
    */
   void report(int line, std::string where, std::string message)
   {
-      had_error = true;
-      std::cerr << "[line " << line << "] Error" << where << ": " << message << std::endl;
+    had_error = true;
+    std::cerr << "[line " << line << "] Error" << where << ": " << message << std::endl;
   }
 
   /**
@@ -24,6 +24,6 @@ namespace Lox
    */
   void error(int line, std::string message)
   {
-      report(line, "", message);
+    report(line, "", message);
   }
 }

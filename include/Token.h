@@ -65,31 +65,40 @@ enum TokenType
  */
 class Token
 {
-    public:
-        // std::variant is a type safe union monostate acts as empty 
-        using LiteralValue = std::variant<std::monostate, std::string, double>;
+public:
+  // std::variant is a type safe union monostate acts as empty 
+  using LiteralValue = std::variant<std::monostate, std::string, double>;
 
-        const TokenType type; /**< Type of the token. */
-        const std::string lexeme; /**< Lexeme of the token. */
-        const LiteralValue literal; /**< Literal value of the token, if applicable. */
-        const int line; /**< Line number in the source where the token was found. */
+  const TokenType type; /**< Type of the token. */
+  const std::string lexeme; /**< Lexeme of the token. */
+  const LiteralValue literal; /**< Literal value of the token, if applicable. */
+  const int line; /**< Line number in the source where the token was found. */
 
-        /**
-         * @brief Constructor for the Token class.
-         * @param type The type of the token.
-         * @param lexeme The lexeme of the token.
-         * @param literal The literal value of the token.
-         * @param line The line number where the token was found.
-         */
-        Token(const TokenType& type, const std::string& lexeme, 
-                const LiteralValue& literal, const int& line):
-            type(type), lexeme(lexeme), literal(literal), line(line) {}
+  /**
+   * @brief Constructor for the Token class.
+   * @param type The type of the token.
+   * @param lexeme The lexeme of the token.
+   * @param line The line number where the token was found.
+   */
+  Token(const TokenType& type, const std::string& lexeme, const int& line)
+    : type(type), lexeme(lexeme), line(line) {}
 
-        /**
-         * @brief Stream insertion operator for the Token class.
-         * @param os The output stream.
-         * @param token The token to be inserted into the stream.
-         * @return The output stream.
-         */
-        friend std::ostream& operator<<(std::ostream& os, const Token& token);
+  /**
+   * @brief Constructor for the Token class.
+   * @param type The type of the token.
+   * @param lexeme The lexeme of the token.
+   * @param literal The literal value of the token.
+   * @param line The line number where the token was found.
+   */
+  Token(const TokenType& type, const std::string& lexeme, 
+        const LiteralValue& literal, const int& line)
+    : type(type), lexeme(lexeme), literal(literal), line(line) {}
+
+  /**
+   * @brief Stream insertion operator for the Token class.
+   * @param os The output stream.
+   * @param token The token to be inserted into the stream.
+   * @return The output stream.
+   */
+  friend std::ostream& operator<<(std::ostream& os, const Token& token);
 };

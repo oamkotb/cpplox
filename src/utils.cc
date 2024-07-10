@@ -1,3 +1,4 @@
+#include "Token.h"
 #include "utils.h"
 
 namespace Lox
@@ -11,7 +12,7 @@ namespace Lox
    * @param where The context or location of the error.
    * @param message The error message.
    */
-  void report(int line, std::string where, std::string message)
+  void report(const int& line, const std::string& where, const std::string& message)
   {
     had_error = true;
     std::cerr << "[line " << line << "] Error" << where << ": " << message << std::endl;
@@ -22,8 +23,21 @@ namespace Lox
    * @param line The line number where the error occurred.
    * @param message The error message.
    */
-  void error(int line, std::string message)
+  void error(const int& line, const std::string& message)
   {
     report(line, "", message);
+  }
+
+  /**
+   * @brief Reports an error related to a specific token.
+   * @param token The token that caused the error.
+   * @param message The error message to be displayed.
+   */
+  void error(const Token& token, const std::string& message)
+  {
+    if (token.type == TokenType::END)
+      report(token.line, " at end", message);
+    else
+      report(token.line, " at '" + token.lexeme + "' ", message);
   }
 }

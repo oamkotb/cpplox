@@ -120,7 +120,7 @@ def defineAst(
         file.write("};\n")
 
 
-def main():
+def main() -> None:
     if (len(sys.argv) != 2):
         raise RuntimeError("Usage: python3 GenerateAst.py <output director>")
         sys.exit(64)

@@ -24,7 +24,7 @@ all: $(MAIN) clean_objs
 $(MAIN): $(OBJS) 
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(MAIN) $(OBJS)
 
-build/%.o: src/%.cc  # Changed from %.cpp to %.cc
+build/%.o: src/%.cc
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 clean:

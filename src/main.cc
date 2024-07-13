@@ -11,7 +11,9 @@
 #include <sstream>
 #include <vector>
 
+#include "AstPrinter.h"
 #include "utils.h"
+#include "Parser.h"
 #include "Scanner.h"
 #include "Token.h"
 
@@ -33,9 +35,17 @@ void run(const std::string& source)
   std::vector<Token> tokens;
   tokens = scanner.scanTokens();
 
-  // Iterate over the tokens and print them.
-  for (Token token : tokens)
-    std::cout << token << std::endl;
+  // Parse the tokens.
+  Parser parser(tokens);
+  Expr<std::string>* expression = parser.parse();
+
+  if (had_error || expression == nullptr) return;
+
+  // Print the expression.
+  AstPrinter ast_printer;
+  std::cout << ast_printer.print(*expression) << std::endl;
+
+  delete expression;
 }
 
 /**

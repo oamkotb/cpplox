@@ -1,14 +1,15 @@
 import os
 import sys
-from typing import List, TextIO, Dict, Bool
+from typing import List, TextIO, Dict
 
 
 class Param:
     def __init__(self, value):
         self.value = value
         self.is_pointer = self.isPointer(value)
+        self.value = self.value.split(f"{'*' if self.is_pointer else '&'}")[1].strip()
 
-    def isPointer(value: str) -> Bool:
+    def isPointer(self, value: str) -> bool:
         return '*' in value
 
 
@@ -17,26 +18,26 @@ def defineConstructor(
         class_name: str,
         fields: str) -> None:
     parameters: List[str] = fields.split(',')
-    parameters: List[Param] = [Param(param.split('&')[1].strip())
+    parameters: List[Param] = [Param(param)
                              for param in parameters]
-    file.write(f"    {class_name}({fields}):\n")
-    file.write("      ")
+    file.write(f"  {class_name}({fields}):\n")
+    file.write('    ')
     for i, param in enumerate(parameters, start=1):
         file.write(f"{param.value}({param.value})")
         if i == len(parameters):
             file.write(' {}\n')
         else:
             file.write(', ')
-    file.write('\n')
 
     # Destructor
-    file.write(f'  ~{class_name}()\n')
-    file.write('\n')
-    file.write('  {\n')
-    for param in parameters:
-        if param.is_pointer:
-            file.write(f'    delete {param.value};\n')
-    file.write('  }\n')
+    if any(map(lambda x: x.is_pointer ,parameters)):
+        file.write('\n')
+        file.write(f'  ~{class_name}()\n')
+        file.write('  {\n')
+        for param in parameters:
+            if param.is_pointer:
+                file.write(f'    delete {param.value};\n')
+        file.write('  }\n')
 
 
 def parseTypes(
@@ -61,7 +62,7 @@ def defineVisitor(
 
     for type_info in types:
         file.write(f"    virtual R visit{type_info['class_name']}Expr"
-                   f"(const {type_info['class_name']}& expr) = 0;\n")
+                   f"(const {base_name}<R>::{type_info['class_name']}& expr) = 0;\n")
     file.write("  };\n")
 
 
@@ -71,19 +72,20 @@ def defineType(
         class_name: str,
         fields: str) -> None:
     # Beginning
-    file.write(f"  class {class_name} : public {base_name}<R>\n")
-    file.write("  {\n")
-    file.write("  public:\n")
+    file.write('template <class R>\n')
+    file.write(f"class {base_name}<R>::{class_name} : public {base_name}<R>\n")
+    file.write("{\n")
+    file.write("public:\n")
 
     # Constructor
     defineConstructor(file, class_name, fields)
     file.write('\n')
 
     # Accept method
-    file.write('    R accept(const Visitor& visitor) override\n')
-    file.write('    {\n')
-    file.write(f'      return visitor.visit{class_name}{base_name}(this);\n')
-    file.write('    }\n')
+    file.write('  R accept(Expr<R>::Visitor& visitor) const override\n')
+    file.write('  {\n')
+    file.write(f'    return visitor.visit{class_name}{base_name}(*this);\n')
+    file.write('  }\n')
     file.write('\n')
 
     # declarations
@@ -92,9 +94,9 @@ def defineType(
                          for field_info in fields]
 
     for type_decl in fields:
-        file.write(f"    {type_decl};\n")
+        file.write(f"  {type_decl};\n")
 
-    file.write("  };\n")
+    file.write("};\n")
 
 
 def defineAst(
@@ -128,7 +130,8 @@ def defineAst(
         file.write('\n')
 
         # The base accept method
-        file.write("  virtual R accept(Visitor& visitor) = 0;\n")
+        file.write("  virtual R accept(Visitor& visitor) const = 0;\n")
+        file.write('};\n')
         file.write('\n')
 
         # The AST Methods
@@ -140,7 +143,6 @@ def defineAst(
             if i != len(types):
                 file.write('\n')
 
-        file.write("};\n")
 
 
 def main() -> None:
@@ -151,10 +153,10 @@ def main() -> None:
     output_dir: str = sys.argv[1]
 
     defineAst(output_dir, "Expr", [
-            "Binary  : const Expr*& left, const Token& oper, const Expr*& right",
-            "Grouping: const Expr*& expression",
+            "Binary  : const Expr<R>* left, const Token& oper, const Expr<R>* right",
+            "Grouping: const Expr<R>* expression",
             "Literal : const Token::LiteralValue& value",
-            "Unary   : const Token& oper, const Expr*& right"
+            "Unary   : const Token& oper, const Expr<R>* right"
     ])
 
 

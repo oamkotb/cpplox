@@ -1,6 +1,15 @@
 import os
 import sys
-from typing import List, TextIO, Dict
+from typing import List, TextIO, Dict, Bool
+
+
+class Param:
+    def __init__(self, value):
+        self.value = value
+        self.is_pointer = self.isPointer(value)
+
+    def isPointer(value: str) -> Bool:
+        return '*' in value
 
 
 def defineConstructor(
@@ -8,16 +17,26 @@ def defineConstructor(
         class_name: str,
         fields: str) -> None:
     parameters: List[str] = fields.split(',')
-    parameters: List[str] = [param.split('&')[1].strip()
+    parameters: List[Param] = [Param(param.split('&')[1].strip())
                              for param in parameters]
     file.write(f"    {class_name}({fields}):\n")
     file.write("      ")
     for i, param in enumerate(parameters, start=1):
-        file.write(f"{param}({param})")
+        file.write(f"{param.value}({param.value})")
         if i == len(parameters):
             file.write(' {}\n')
         else:
             file.write(', ')
+    file.write('\n')
+
+    # Destructor
+    file.write(f'  ~{class_name}()\n')
+    file.write('\n')
+    file.write('  {\n')
+    for param in parameters:
+        if param.is_pointer:
+            file.write(f'    delete {param.value};\n')
+    file.write('  }\n')
 
 
 def parseTypes(
@@ -95,6 +114,10 @@ def defineAst(
         file.write(f"class {base_name}\n")
         file.write("{\n")
         file.write("public:\n")
+
+        # Virtual destructor to allow for proper cleanup of derived classes.
+        file.write(f"  virtual ~{base_name}() = default;\n")
+        file.write("\n")
 
         # Predefinitons for types
         for type_info in types:

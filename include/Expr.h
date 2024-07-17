@@ -50,12 +50,21 @@ public:
      * @return The result of visiting the expression.
      */
     virtual R visitUnaryExpr(const Expr<R>::Unary& expr) = 0;
+
+    /**
+     * @brief Visit a conditional expression.
+     * 
+     * @param expr The conditional expression to visit.
+     * @return The result of visiting the expression.
+     */
+    virtual R visitConditionalExpr(const Expr<R>::Conditional& expr) = 0;
   };
 
   class Binary;
   class Grouping;
   class Literal;
   class Unary;
+  class Conditional;
 
   /**
    * @brief Accept a visitor to process this expression.
@@ -213,4 +222,47 @@ public:
 
   const Token oper; ///< The operator token.
   const Expr<R>* right; ///< The operand of the unary expression.
+};
+
+/**
+ * @brief Represents a conditional (ternary) expression.
+ * 
+ * @tparam R The return type of the expression when evaluated or processed.
+ */
+template <class R>
+class Expr<R>::Conditional : public Expr<R>
+{
+public:
+  /**
+   * @brief Construct a new Conditional expression.
+   * 
+   * @param condition The condition expression.
+   * @param then_branch The expression to evaluate if the condition is true.
+   * @param else_branch The expression to evaluate if the condition is false.
+   */
+  Conditional(Expr<R>* condition, Expr<R>* then_branch, Expr<R>* else_branch)
+    : condition(condition), then_branch(then_branch), else_branch(else_branch) {}
+
+  /// Destructor to clean up the sub-expressions.
+  ~Conditional()
+  {
+    delete condition;
+    delete then_branch;
+    delete else_branch;
+  }
+
+  /**
+   * @brief Accept a visitor to process this conditional expression.
+   * 
+   * @param visitor The visitor to accept.
+   * @return The result of the visitor processing this expression.
+   */
+  R accept(Expr<R>::Visitor& visitor) const override
+  {
+    return visitor.visitConditionalExpr(*this);
+  }
+
+  Expr<R>* condition; ///< The condition expression.
+  Expr<R>* then_branch; ///< The expression to evaluate if the condition is true.
+  Expr<R>* else_branch; ///< The expression to evaluate if the condition is false.
 };

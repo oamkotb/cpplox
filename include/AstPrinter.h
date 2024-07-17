@@ -75,6 +75,17 @@ public:
     return parenthesize(expr.oper.lexeme, { expr.right });
   }
 
+  /**
+   * @brief Visit and print a conditional expression.
+   * 
+   * @param expr The conditional expression to visit.
+   * @return A string representation of the conditional expression.
+   */
+  std::string visitConditionalExpr(const Expr<std::string>::Conditional& expr) override
+  {
+    return parenthesize("?:", { expr.condition, expr.then_branch, expr.else_branch });
+  }
+
 private:
   /**
    * @brief Parenthesize the expression with the given name and list of sub-expressions.

@@ -20,6 +20,7 @@ std::string tokenTypeToString(TokenType type)
     case SEMICOLON: return "SEMICOLON";
     case SLASH: return "SLASH";
     case STAR: return "STAR";
+    case QUESTION_MARK: return "QUESTION_MARK";
     case BANG: return "BANG";
     case BANG_EQUAL: return "BANG_EQUAL";
     case EQUAL: return "EQUAL";

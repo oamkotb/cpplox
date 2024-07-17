@@ -22,6 +22,8 @@ enum TokenType
   SEMICOLON, /**< Token for ';' */
   SLASH, /**< Token for '/' */
   STAR, /**< Token for '*' */
+  COLON, /**< Token for ':' */
+  QUESTION_MARK, /**< Token for '?' */
 
   // One or two character tokens.
   BANG, /**< Token for '!' */

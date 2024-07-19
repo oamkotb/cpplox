@@ -13,6 +13,12 @@ class Expr
 public:
   /// Virtual destructor to allow for proper cleanup of derived classes.
   virtual ~Expr() = default;
+  
+  class Binary;
+  class Grouping;
+  class Literal;
+  class Unary;
+  class Conditional;
 
   /**
    * @brief The Visitor interface for the expression.
@@ -59,12 +65,6 @@ public:
      */
     virtual R visitConditionalExpr(const Expr<R>::Conditional& expr) = 0;
   };
-
-  class Binary;
-  class Grouping;
-  class Literal;
-  class Unary;
-  class Conditional;
 
   /**
    * @brief Accept a visitor to process this expression.

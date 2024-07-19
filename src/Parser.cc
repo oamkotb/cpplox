@@ -1,6 +1,10 @@
 #include "utils.h"
 #include "Parser.h"
 
+/**
+ * @brief Parses the tokens into an expression.
+ * @return A pointer to the parsed expression or nullptr if an error occurred.
+ */
 Expr<std::string>* Parser::parse()
 {
   try
@@ -14,11 +18,19 @@ Expr<std::string>* Parser::parse()
   }
 }
 
+/**
+ * @brief Parses an expression.
+ * @return A pointer to the parsed expression.
+ */
 Expr<std::string>* Parser::expression()
 {
   return conditional();
 }
 
+/**
+ * @brief Parses a conditional expression.
+ * @return A pointer to the parsed conditional expression.
+ */
 Expr<std::string>* Parser::conditional()
 {
   Expr<std::string>* expr = comma();
@@ -35,6 +47,10 @@ Expr<std::string>* Parser::conditional()
   return expr;
 }
 
+/**
+ * @brief Parses a comma expression.
+ * @return A pointer to the parsed comma expression.
+ */
 Expr<std::string>* Parser::comma()
 {
   Expr<std::string>* expr = equality();
@@ -50,6 +66,10 @@ Expr<std::string>* Parser::comma()
   return expr;
 }
 
+/**
+ * @brief Parses an equality expression.
+ * @return A pointer to the parsed equality expression.
+ */
 Expr<std::string>* Parser::equality()
 {
   Expr<std::string>* expr = comparison();
@@ -65,6 +85,10 @@ Expr<std::string>* Parser::equality()
   return expr;
 }
 
+/**
+ * @brief Parses a comparison expression.
+ * @return A pointer to the parsed comparison expression.
+ */
 Expr<std::string>* Parser::comparison()
 {
   Expr<std::string>* expr = term();
@@ -80,6 +104,10 @@ Expr<std::string>* Parser::comparison()
   return expr;
 }
 
+/**
+ * @brief Parses a term expression.
+ * @return A pointer to the parsed term expression.
+ */
 Expr<std::string>* Parser::term()
 {
   Expr<std::string>* expr = factor();
@@ -95,6 +123,10 @@ Expr<std::string>* Parser::term()
   return expr;
 }
 
+/**
+ * @brief Parses a factor expression.
+ * @return A pointer to the parsed factor expression.
+ */
 Expr<std::string>* Parser::factor()
 {
   Expr<std::string>* expr = unary();
@@ -110,6 +142,10 @@ Expr<std::string>* Parser::factor()
   return expr;
 }
 
+/**
+ * @brief Parses a unary expression.
+ * @return A pointer to the parsed unary expression.
+ */
 Expr<std::string>* Parser::unary()
 {
   if (match({ BANG, MINUS }))
@@ -124,6 +160,10 @@ Expr<std::string>* Parser::unary()
   return primary();
 }
 
+/**
+ * @brief Parses a primary expression.
+ * @return A pointer to the parsed primary expression.
+ */
 Expr<std::string>* Parser::primary()
 {
   if (match(FALSE)) return new Expr<std::string>::Literal(0.0);
@@ -148,6 +188,11 @@ Expr<std::string>* Parser::primary()
   throw error(peek(), "Expect expression.");
 }
 
+/**
+ * @brief Checks if the current token matches the given type and advances if it does.
+ * @param type The token type to match.
+ * @return True if the token matches, otherwise false.
+ */
 bool Parser::match(const TokenType& type)
 {
   if (check(type))
@@ -158,6 +203,11 @@ bool Parser::match(const TokenType& type)
   return false;
 }
 
+/**
+ * @brief Checks if the current token matches any of the given types and advances if it does.
+ * @param types The list of token types to match.
+ * @return True if the token matches any of the types, otherwise false.
+ */
 bool Parser::match(const std::vector<TokenType>& types)
 {
   for (TokenType type : types)
@@ -169,17 +219,32 @@ bool Parser::match(const std::vector<TokenType>& types)
   return false;
 }
 
+/**
+ * @brief Checks if the current token matches the given type.
+ * @param type The token type to check.
+ * @return True if the token matches, otherwise false.
+ */
 bool Parser::check(const TokenType& type)
 {
   if (isAtEnd()) return false;
   return peek().type == type;
 }
 
+/**
+ * @brief Checks if the parser has reached the end of the token list.
+ * @return True if at the end, otherwise false.
+ */
 bool Parser::isAtEnd()
 {
   return peek().type == END;
 }
 
+/**
+ * @brief Consumes the current token if it matches the given type, otherwise throws an error.
+ * @param type The token type to consume.
+ * @param message The error message if the token doesn't match.
+ * @return The consumed token.
+ */
 Token Parser::consume(const TokenType& type, const std::string& message)
 {
   if (check(type)) return advance();
@@ -187,23 +252,40 @@ Token Parser::consume(const TokenType& type, const std::string& message)
   throw error(peek(), message);
 }
 
+/**
+ * @brief Peeks at the current token.
+ * @return The current token.
+ */
 Token Parser::peek()
 {
   return _tokens[_current];
 }
 
+/**
+ * @brief Advances to the next token and returns the previous token.
+ * @return The previous token.
+ */
 Token Parser::advance()
 {
   if (!isAtEnd()) ++_current;
   return previous();
 }
 
+/**
+ * @brief Returns the previous token.
+ * @return The previous token.
+ */
 Token Parser::previous()
 {
   return _tokens[_current - 1];
 }
 
-
+/**
+ * @brief Creates a parse error, logs it, and returns a ParseError object.
+ * @param token The token where the error occurred.
+ * @param message The error message.
+ * @return A ParseError object.
+ */
 ParseError Parser::error (const Token& token, const std::string& message)
 {
   Lox::error(token, message);
@@ -211,6 +293,9 @@ ParseError Parser::error (const Token& token, const std::string& message)
   return ParseError(message);
 }
 
+/**
+ * @brief Synchronizes the parser state after an error.
+ */
 void Parser::synchronize()
 {
   advance();
@@ -238,11 +323,18 @@ void Parser::synchronize()
   }
 }
 
+/**
+ * @brief Registers an allocated expression for cleanup.
+ * @param expr The expression to register.
+ */
 void Parser::registerExpr(Expr<std::string>* expr)
 {
   _allocated_exprs.push_back(expr);
 }
 
+/**
+ * @brief Cleans up all allocated expressions.
+ */
 void Parser::cleanUpExprs()
 {
   for (Expr<std::string>* expr : _allocated_exprs)

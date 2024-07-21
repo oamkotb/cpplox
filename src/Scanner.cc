@@ -114,7 +114,7 @@ void Scanner::addToken(const TokenType& type)
  * @param type The type of the token to be added.
  * @param literal The literal value of the token.
  */
-void Scanner::addToken(const TokenType& type, const Token::LiteralValue& literal)
+void Scanner::addToken(const TokenType& type, const LiteralValue& literal)
 {
   std::string text = _source.substr(_start, _current - _start);
   _tokens.emplace_back(type, text, literal, _line);

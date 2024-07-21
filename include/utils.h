@@ -7,6 +7,7 @@
 
 #include <iostream>
 
+#include "RuntimeError.h"
 #include "Token.h"
 
 namespace Lox
@@ -15,6 +16,11 @@ namespace Lox
    * @brief Flag to indicate if an error has occurred.
    */
   extern bool had_error;
+
+  /**
+   * @brief Flag to indicate if a runtime error has occured.
+   */
+  extern bool had_runtime_error;
 
   /**
    * @brief Reports an error with the given message and location.
@@ -37,4 +43,11 @@ namespace Lox
    * @param message The error message to be displayed.
    */
   void error(const Token& token, const std::string& message);
+
+  /**
+   * @brief Reports a specific runtime error.
+   * @param error The RuntimeError object that contains the token and message for the error.
+   */
+  void runtimeError(const RuntimeError& error);
+
 }

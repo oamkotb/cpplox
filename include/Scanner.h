@@ -55,7 +55,7 @@ private:
      * @param type The type of the token to be added.
      * @param literal The literal value of the token.
      */
-    void addToken(const TokenType& type, const Token::LiteralValue& literal);
+    void addToken(const TokenType& type, const LiteralValue& literal);
 
     /**
      * @brief Checks if the scanner has reached the end of the source code.

@@ -12,10 +12,11 @@
 #include <vector>
 
 #include "AstPrinter.h"
-#include "utils.h"
+#include "Interpreter.h"
 #include "Parser.h"
 #include "Scanner.h"
 #include "Token.h"
+#include "utils.h"
 
 bool had_error = false; // Extern
 
@@ -36,14 +37,18 @@ void run(const std::string& source)
   tokens = scanner.scanTokens();
 
   // Parse the tokens.
-  Parser parser(tokens);
-  Expr<std::string>* expression = parser.parse();
+  Parser<LiteralValue> parser(tokens);
+  Expr<LiteralValue>* expression = parser.parse();
 
   if (had_error || expression == nullptr) return;
 
   // Print the expression.
-  AstPrinter ast_printer;
-  std::cout << ast_printer.print(*expression) << std::endl;
+  // AstPrinter ast_printer;
+  // std::cout << ast_printer.print(*expression) << std::endl;
+
+  // Interpret the expression.
+  Interpreter interpreter;
+  interpreter.interpret(expression);
 
   delete expression;
 }

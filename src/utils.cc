@@ -1,10 +1,12 @@
-#include "Token.h"
 #include "utils.h"
 
 namespace Lox
 {
   /** Flag to indicate if an error has occurred. */
   bool had_error = false;
+  
+  /** Flag to indicate if a runtime error has occured. */
+  bool had_runtime_error = false;
 
   /**
    * @brief Reports an error with the given message and location.
@@ -39,5 +41,15 @@ namespace Lox
       report(token.line, " at end", message);
     else
       report(token.line, " at '" + token.lexeme + "' ", message);
+  }
+
+  /**
+   * @brief Reports a specific runtime error.
+   * @param error The RuntimeError object that contains the token and message for the error.
+   */
+  void runtimeError(const RuntimeError& error)
+  {
+    std::cerr << error.what() << "\n[line " << error.token.line + "]" << std::endl;
+    had_runtime_error = true;
   }
 }

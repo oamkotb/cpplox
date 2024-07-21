@@ -23,7 +23,9 @@ public:
 /**
  * @class Parser
  * @brief Parses tokens into an abstract syntax tree (AST) of expressions.
+ * @tparam R The type of the expression that will be parsed.
  */
+template <class R>
 class Parser
 {
 public:
@@ -38,67 +40,67 @@ public:
    * @brief Parses the tokens into an expression.
    * @return A pointer to the parsed expression or nullptr if an error occurred.
    */
-  Expr<std::string>* parse();
+  Expr<R>* parse();
 
 private:
   std::vector<Token> _tokens; ///< The list of tokens to parse.
   unsigned int _current = 0; ///< The current position in the token list.
 
-  std::vector<Expr<std::string>*> _allocated_exprs; ///< List of allocated expressions for cleanup.
+  std::vector<Expr<R>*> _allocated_exprs; ///< List of allocated expressions for cleanup.
 
   /**
    * @brief Parses an expression.
    * @return A pointer to the parsed expression.
    */
-  Expr<std::string>* expression();
+  Expr<R>* expression();
 
   /**
    * @brief Parses a conditional expression.
    * @return A pointer to the parsed conditional expression.
    */
-  Expr<std::string>* conditional();
+  Expr<R>* conditional();
 
   /**
    * @brief Parses a comma expression.
    * @return A pointer to the parsed comma expression.
    */
-  Expr<std::string>* comma();
+  Expr<R>* comma();
 
   /**
    * @brief Parses an equality expression.
    * @return A pointer to the parsed equality expression.
    */
-  Expr<std::string>* equality();
+  Expr<R>* equality();
 
   /**
    * @brief Parses a comparison expression.
    * @return A pointer to the parsed comparison expression.
    */
-  Expr<std::string>* comparison();
+  Expr<R>* comparison();
 
   /**
    * @brief Parses a term expression.
    * @return A pointer to the parsed term expression.
    */
-  Expr<std::string>* term();
+  Expr<R>* term();
 
   /**
    * @brief Parses a factor expression.
    * @return A pointer to the parsed factor expression.
    */
-  Expr<std::string>* factor();
+  Expr<R>* factor();
 
   /**
    * @brief Parses a unary expression.
    * @return A pointer to the parsed unary expression.
    */
-  Expr<std::string>* unary();
+  Expr<R>* unary();
 
   /**
    * @brief Parses a primary expression.
    * @return A pointer to the parsed primary expression.
    */
-  Expr<std::string>* primary();
+  Expr<R>* primary();
   
   /**
    * @brief Checks if the current token matches the given type and advances if it does.
@@ -170,10 +172,12 @@ private:
    * @brief Registers an allocated expression for cleanup.
    * @param expr The expression to register.
    */
-  void registerExpr(Expr<std::string>* expr);
+  void registerExpr(Expr<R>* expr);
 
   /**
    * @brief Cleans up all allocated expressions.
    */
   void cleanUpExprs();
 };
+
+#include "Parser_impl.h"

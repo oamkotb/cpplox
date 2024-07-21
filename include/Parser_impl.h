@@ -3,9 +3,11 @@
 
 /**
  * @brief Parses the tokens into an expression.
+ * @tparam R The type of the expression that will be parsed.
  * @return A pointer to the parsed expression or nullptr if an error occurred.
  */
-Expr<std::string>* Parser::parse()
+template <class R>
+Expr<R>* Parser<R>::parse()
 {
   try
   {
@@ -20,27 +22,31 @@ Expr<std::string>* Parser::parse()
 
 /**
  * @brief Parses an expression.
+ * @tparam R The type of the expression that will be parsed.
  * @return A pointer to the parsed expression.
  */
-Expr<std::string>* Parser::expression()
+template <class R>
+Expr<R>* Parser<R>::expression()
 {
   return conditional();
 }
 
 /**
  * @brief Parses a conditional expression.
+ * @tparam R The type of the expression that will be parsed.
  * @return A pointer to the parsed conditional expression.
  */
-Expr<std::string>* Parser::conditional()
+template <class R>
+Expr<R>* Parser<R>::conditional()
 {
-  Expr<std::string>* expr = comma();
+  Expr<R>* expr = comma();
 
   if (match({QUESTION_MARK}))
   {
-    Expr<std::string>* then_branch = expression();
+    Expr<R>* then_branch = expression();
     consume(COLON, "Expect ':' after then branch of conditional expression.");
-    Expr<std::string>* else_branch = conditional();
-    expr = new Expr<std::string>::Conditional(expr, then_branch, else_branch);
+    Expr<R>* else_branch = conditional();
+    expr = new Expr<R>::Conditional(expr, then_branch, else_branch);
     registerExpr(expr);
   }
 
@@ -49,17 +55,19 @@ Expr<std::string>* Parser::conditional()
 
 /**
  * @brief Parses a comma expression.
+ * @tparam R The type of the expression that will be parsed.
  * @return A pointer to the parsed comma expression.
  */
-Expr<std::string>* Parser::comma()
+template <class R>
+Expr<R>* Parser<R>::comma()
 {
-  Expr<std::string>* expr = equality();
+  Expr<R>* expr = equality();
 
   while (match({COMMA}))
   {
     Token oper = previous();
-    Expr<std::string>* right = equality();
-    expr = new Expr<std::string>::Binary(expr, oper, right);
+    Expr<R>* right = equality();
+    expr = new Expr<R>::Binary(expr, oper, right);
     registerExpr(expr);
   }
 
@@ -68,17 +76,19 @@ Expr<std::string>* Parser::comma()
 
 /**
  * @brief Parses an equality expression.
+ * @tparam R The type of the expression that will be parsed.
  * @return A pointer to the parsed equality expression.
  */
-Expr<std::string>* Parser::equality()
+template <class R>
+Expr<R>* Parser<R>::equality()
 {
-  Expr<std::string>* expr = comparison();
+  Expr<R>* expr = comparison();
 
   while (match({ BANG_EQUAL, EQUAL_EQUAL }))
   {
     Token oper = previous();
-    Expr<std::string>* right = comparison();
-    expr = new Expr<std::string>::Binary(expr, oper, right);
+    Expr<R>* right = comparison();
+    expr = new Expr<R>::Binary(expr, oper, right);
     registerExpr(expr);
   }
 
@@ -87,17 +97,19 @@ Expr<std::string>* Parser::equality()
 
 /**
  * @brief Parses a comparison expression.
+ * @tparam R The type of the expression that will be parsed.
  * @return A pointer to the parsed comparison expression.
  */
-Expr<std::string>* Parser::comparison()
+template <class R>
+Expr<R>* Parser<R>::comparison()
 {
-  Expr<std::string>* expr = term();
+  Expr<R>* expr = term();
 
   while (match({ GREATER, GREATER_EQUAL, LESS, LESS_EQUAL }))
   {
     Token oper = previous();
-    Expr<std::string>* right = term();
-    expr = new Expr<std::string>::Binary(expr, oper, right);
+    Expr<R>* right = term();
+    expr = new Expr<R>::Binary(expr, oper, right);
     registerExpr(expr);
   }
 
@@ -106,17 +118,19 @@ Expr<std::string>* Parser::comparison()
 
 /**
  * @brief Parses a term expression.
+ * @tparam R The type of the expression that will be parsed.
  * @return A pointer to the parsed term expression.
  */
-Expr<std::string>* Parser::term()
+template <class R>
+Expr<R>* Parser<R>::term()
 {
-  Expr<std::string>* expr = factor();
+  Expr<R>* expr = factor();
 
   while (match({ MINUS, PLUS }))
   {
     Token oper = previous();
-    Expr<std::string>* right = factor();
-    expr = new Expr<std::string>::Binary(expr, oper, right);
+    Expr<R>* right = factor();
+    expr = new Expr<R>::Binary(expr, oper, right);
     registerExpr(expr);
   }
 
@@ -125,17 +139,19 @@ Expr<std::string>* Parser::term()
 
 /**
  * @brief Parses a factor expression.
+ * @tparam R The type of the expression that will be parsed.
  * @return A pointer to the parsed factor expression.
  */
-Expr<std::string>* Parser::factor()
+template <class R>
+Expr<R>* Parser<R>::factor()
 {
-  Expr<std::string>* expr = unary();
+  Expr<R>* expr = unary();
 
   while (match({ SLASH, STAR }))
   {
     Token oper =  previous();
-    Expr<std::string>* right = unary();
-    expr = new Expr<std::string>::Binary(expr, oper, right);
+    Expr<R>* right = unary();
+    expr = new Expr<R>::Binary(expr, oper, right);
     registerExpr(expr);
   }
 
@@ -144,15 +160,17 @@ Expr<std::string>* Parser::factor()
 
 /**
  * @brief Parses a unary expression.
+ * @tparam R The type of the expression that will be parsed.
  * @return A pointer to the parsed unary expression.
  */
-Expr<std::string>* Parser::unary()
+template <class R>
+Expr<R>* Parser<R>::unary()
 {
   if (match({ BANG, MINUS }))
   {
     Token oper = previous();
-    Expr<std::string>* right = unary();
-    Expr<std::string>* expr = new Expr<std::string>::Unary(oper, right);
+    Expr<R>* right = unary();
+    Expr<R>* expr = new Expr<R>::Unary(oper, right);
     registerExpr(expr);
     return expr;
   }
@@ -162,25 +180,28 @@ Expr<std::string>* Parser::unary()
 
 /**
  * @brief Parses a primary expression.
+ * @tparam R The type of the expression that will be parsed.
  * @return A pointer to the parsed primary expression.
  */
-Expr<std::string>* Parser::primary()
+template <class R>
+Expr<R>* Parser<R>::primary()
 {
-  if (match(FALSE)) return new Expr<std::string>::Literal(0.0);
-  if (match(TRUE)) return new Expr<std::string>::Literal(1.0);
-  if (match(NIL)) return new Expr<std::string>::Literal(std::monostate()); // NULL
+  if (match(FALSE)) return new Expr<R>::Literal(false);
+  if (match(TRUE)) return new Expr<R>::Literal(true);
+  if (match(NIL)) return new Expr<R>::Literal(std::monostate()); // NULL
 
   if (match({ NUMBER, STRING }))
   {
-    Expr<std::string>* expr =  new Expr<std::string>::Literal(previous().literal);
+    Expr<R>* expr =  new Expr<R>::Literal(previous().literal);
     registerExpr(expr);
+    return expr;
   }
   
   if (match(LEFT_PAREN))
   {
-    Expr<std::string>* expr = expression();
+    Expr<R>* expr = expression();
     consume(RIGHT_PAREN, "Expect ')' after expression.");
-    Expr<std::string>* grouping = new Expr<std::string>::Grouping(expr);
+    Expr<R>* grouping = new Expr<R>::Grouping(expr);
     registerExpr(expr);
     return grouping;
   }
@@ -190,10 +211,12 @@ Expr<std::string>* Parser::primary()
 
 /**
  * @brief Checks if the current token matches the given type and advances if it does.
+ * @tparam R The type of the expression that will be parsed.
  * @param type The token type to match.
  * @return True if the token matches, otherwise false.
  */
-bool Parser::match(const TokenType& type)
+template <class R>
+bool Parser<R>::match(const TokenType& type)
 {
   if (check(type))
   {
@@ -205,10 +228,12 @@ bool Parser::match(const TokenType& type)
 
 /**
  * @brief Checks if the current token matches any of the given types and advances if it does.
+ * @tparam R The type of the expression that will be parsed.
  * @param types The list of token types to match.
  * @return True if the token matches any of the types, otherwise false.
  */
-bool Parser::match(const std::vector<TokenType>& types)
+template <class R>
+bool Parser<R>::match(const std::vector<TokenType>& types)
 {
   for (TokenType type : types)
     if (check(type))
@@ -221,10 +246,12 @@ bool Parser::match(const std::vector<TokenType>& types)
 
 /**
  * @brief Checks if the current token matches the given type.
+ * @tparam R The type of the expression that will be parsed.
  * @param type The token type to check.
  * @return True if the token matches, otherwise false.
  */
-bool Parser::check(const TokenType& type)
+template <class R>
+bool Parser<R>::check(const TokenType& type)
 {
   if (isAtEnd()) return false;
   return peek().type == type;
@@ -232,20 +259,24 @@ bool Parser::check(const TokenType& type)
 
 /**
  * @brief Checks if the parser has reached the end of the token list.
+ * @tparam R The type of the expression that will be parsed.
  * @return True if at the end, otherwise false.
  */
-bool Parser::isAtEnd()
+template <class R>
+bool Parser<R>::isAtEnd()
 {
   return peek().type == END;
 }
 
 /**
  * @brief Consumes the current token if it matches the given type, otherwise throws an error.
+ * @tparam R The type of the expression that will be parsed.
  * @param type The token type to consume.
  * @param message The error message if the token doesn't match.
  * @return The consumed token.
  */
-Token Parser::consume(const TokenType& type, const std::string& message)
+template <class R>
+Token Parser<R>::consume(const TokenType& type, const std::string& message)
 {
   if (check(type)) return advance();
 
@@ -254,18 +285,22 @@ Token Parser::consume(const TokenType& type, const std::string& message)
 
 /**
  * @brief Peeks at the current token.
+ * @tparam R The type of the expression that will be parsed.
  * @return The current token.
  */
-Token Parser::peek()
+template <class R>
+Token Parser<R>::peek()
 {
   return _tokens[_current];
 }
 
 /**
  * @brief Advances to the next token and returns the previous token.
+ * @tparam R The type of the expression that will be parsed.
  * @return The previous token.
  */
-Token Parser::advance()
+template <class R>
+Token Parser<R>::advance()
 {
   if (!isAtEnd()) ++_current;
   return previous();
@@ -273,20 +308,24 @@ Token Parser::advance()
 
 /**
  * @brief Returns the previous token.
+ * @tparam R The type of the expression that will be parsed.
  * @return The previous token.
  */
-Token Parser::previous()
+template <class R>
+Token Parser<R>::previous()
 {
   return _tokens[_current - 1];
 }
 
 /**
  * @brief Creates a parse error, logs it, and returns a ParseError object.
+ * @tparam R The type of the expression that will be parsed.
  * @param token The token where the error occurred.
  * @param message The error message.
  * @return A ParseError object.
  */
-ParseError Parser::error (const Token& token, const std::string& message)
+template <class R>
+ParseError Parser<R>::error(const Token& token, const std::string& message)
 {
   Lox::error(token, message);
   cleanUpExprs();
@@ -295,8 +334,10 @@ ParseError Parser::error (const Token& token, const std::string& message)
 
 /**
  * @brief Synchronizes the parser state after an error.
+ * @tparam R The type of the expression that will be parsed.
  */
-void Parser::synchronize()
+template <class R>
+void Parser<R>::synchronize()
 {
   advance();
  
@@ -325,19 +366,23 @@ void Parser::synchronize()
 
 /**
  * @brief Registers an allocated expression for cleanup.
+ * @tparam R The type of the expression that will be parsed.
  * @param expr The expression to register.
  */
-void Parser::registerExpr(Expr<std::string>* expr)
+template <class R>
+void Parser<R>::registerExpr(Expr<R>* expr)
 {
   _allocated_exprs.push_back(expr);
 }
 
 /**
  * @brief Cleans up all allocated expressions.
+ * @tparam R The type of the expression that will be parsed.
  */
-void Parser::cleanUpExprs()
+template <class R>
+void Parser<R>::cleanUpExprs()
 {
-  for (Expr<std::string>* expr : _allocated_exprs)
+  for (Expr<R>* expr : _allocated_exprs)
   {
     delete expr;
   }

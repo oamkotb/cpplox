@@ -168,7 +168,7 @@ public:
    * 
    * @param value The value of the literal expression.
    */
-  Literal(const Token::LiteralValue& value)
+  Literal(const LiteralValue& value)
     : value(value) {}
 
   /**
@@ -182,7 +182,7 @@ public:
     return visitor.visitLiteralExpr(*this);
   }
 
-  const Token::LiteralValue value; ///< The value of the literal expression.
+  const LiteralValue value; ///< The value of the literal expression.
 };
 
 /**
@@ -262,7 +262,7 @@ public:
     return visitor.visitConditionalExpr(*this);
   }
 
-  Expr<R>* condition; ///< The condition expression.
-  Expr<R>* then_branch; ///< The expression to evaluate if the condition is true.
-  Expr<R>* else_branch; ///< The expression to evaluate if the condition is false.
+  const Expr<R>* condition; ///< The condition expression.
+  const Expr<R>* then_branch; ///< The expression to evaluate if the condition is true.
+  const Expr<R>* else_branch; ///< The expression to evaluate if the condition is false.
 };

@@ -2,7 +2,9 @@
 
 #include <stdexcept>
 #include <vector>
+#include <memory>
 #include "Expr.h"
+#include "Stmt.h"
 #include "Token.h"
 
 /**
@@ -34,73 +36,104 @@ public:
    * @param tokens The list of tokens to parse.
    */
   Parser(std::vector<Token> tokens)
-    : _tokens(tokens) {}
-
+    : _tokens(std::move(tokens)) {}
+  
   /**
-   * @brief Parses the tokens into an expression.
-   * @return A pointer to the parsed expression or nullptr if an error occurred.
+   * @brief Parses the tokens into a list of statements.
+   * @return A vector of smart pointers to the parsed statements.
    */
-  Expr<R>* parse();
+  std::vector<std::shared_ptr<Stmt<R>>> parse();
 
 private:
   std::vector<Token> _tokens; ///< The list of tokens to parse.
   unsigned int _current = 0; ///< The current position in the token list.
 
-  std::vector<Expr<R>*> _allocated_exprs; ///< List of allocated expressions for cleanup.
+  std::vector<std::shared_ptr<Expr<R>>> _allocated_exprs; ///< List of allocated expressions for cleanup.
+  std::vector<std::shared_ptr<Stmt<R>>> _allocated_stmts; ///< List of allocated statements for cleanup.
 
   /**
    * @brief Parses an expression.
-   * @return A pointer to the parsed expression.
+   * @return A smart pointer to the parsed expression.
    */
-  Expr<R>* expression();
+  std::shared_ptr<Expr<R>> expression();
+
+  /**
+   * @brief Parses a declaration statement.
+   * @return A smart pointer to the parsed declaration statement.
+   */
+  std::shared_ptr<Stmt<R>> declaration();
+
+  /**
+   * @brief Parses a statement.
+   * @return A smart pointer to the parsed statement.
+   */
+  std::shared_ptr<Stmt<R>> statement();
+
+  /**
+   * @brief Parses a variable declaration statement.
+   * @return A smart pointer to the parsed variable declaration statement.
+   */
+  std::shared_ptr<Stmt<R>> varDeclaration();
+
+  /**
+   * @brief Parses a print statement.
+   * @return A smart pointer to the parsed print statement.
+   */
+  std::shared_ptr<Stmt<R>> printStatement();
+  
+  /**
+   * @brief Parses an expression statement.
+   * @return A smart pointer to the parsed expression statement.
+   */
+  std::shared_ptr<Stmt<R>> expressionStatement();
 
   /**
    * @brief Parses a conditional expression.
-   * @return A pointer to the parsed conditional expression.
+   * @return A smart pointer to the parsed conditional expression.
    */
-  Expr<R>* conditional();
+  std::shared_ptr<Expr<R>> conditional();
 
   /**
    * @brief Parses a comma expression.
-   * @return A pointer to the parsed comma expression.
+   * @return A smart pointer to the parsed comma expression.
    */
-  Expr<R>* comma();
+  std::shared_ptr<Expr<R>> comma();
 
   /**
    * @brief Parses an equality expression.
-   * @return A pointer to the parsed equality expression.
+   * @return A smart pointer to the parsed equality expression.
    */
-  Expr<R>* equality();
+  std::shared_ptr<Expr<R>> equality();
 
   /**
    * @brief Parses a comparison expression.
-   * @return A pointer to the parsed comparison expression.
+   * @return A smart pointer to the parsed comparison expression.
    */
-  Expr<R>* comparison();
+  std::shared_ptr<Expr<R>> comparison();
 
   /**
    * @brief Parses a term expression.
-   * @return A pointer to the parsed term expression.
+   * @return A smart pointer to the parsed term expression.
    */
-  Expr<R>* term();
+  std::shared_ptr<Expr<R>> term();
 
   /**
    * @brief Parses a factor expression.
-   * @return A pointer to the parsed factor expression.
+   * @return A smart pointer to the parsed factor expression.
    */
-  Expr<R>* factor();
+  std::shared_ptr<Expr<R>> factor();
 
   /**
    * @brief Parses a unary expression.
-   * @return A pointer to the parsed unary expression.
+   * @return A smart pointer to the parsed unary expression.
    */
-  Expr<R>* unary();
+  std::shared_ptr<Expr<R>> unary();
 
   /**
    * @brief Parses a primary expression.
-   * @return A pointer to the parsed primary expression.
+   * @return A smart pointer to the parsed primary expression.
    */
-  Expr<R>* primary();
+  std::shared_ptr<Expr<R>> primary();
   
   /**
    * @brief Checks if the current token matches the given type and advances if it does.
@@ -161,23 +194,12 @@ private:
    * @param message The error message.
    * @return A ParseError object.
    */
-  ParseError error (const Token& token, const std::string& message);
+  ParseError error(const Token& token, const std::string& message);
 
   /**
    * @brief Synchronizes the parser state after an error.
    */
   void synchronize();
-
-  /**
-   * @brief Registers an allocated expression for cleanup.
-   * @param expr The expression to register.
-   */
-  void registerExpr(Expr<R>* expr);
-
-  /**
-   * @brief Cleans up all allocated expressions.
-   */
-  void cleanUpExprs();
 };
 
 #include "Parser_impl.h"

@@ -2,52 +2,137 @@
 #include "Parser.h"
 
 /**
- * @brief Parses the tokens into an expression.
+ * @brief Parses the tokens into a list of statements.
  * @tparam R The type of the expression that will be parsed.
- * @return A pointer to the parsed expression or nullptr if an error occurred.
+ * @return A vector of smart pointers to the parsed statements.
  */
 template <class R>
-Expr<R>* Parser<R>::parse()
+std::vector<std::shared_ptr<Stmt<R>>> Parser<R>::parse()
 {
-  try
+  std::vector<std::shared_ptr<Stmt<R>>> statements;
+
+  while (!isAtEnd())
   {
-    return expression();
+    std::shared_ptr<Stmt<R>> stmt = declaration();
+    if (stmt != nullptr)
+    {
+      statements.push_back(stmt);
+    }
   }
-  catch (const ParseError& error)
-  {
-    cleanUpExprs();
-    return nullptr;
-  }
+
+  return statements;
 }
 
 /**
  * @brief Parses an expression.
  * @tparam R The type of the expression that will be parsed.
- * @return A pointer to the parsed expression.
+ * @return A smart pointer to the parsed expression.
  */
 template <class R>
-Expr<R>* Parser<R>::expression()
+std::shared_ptr<Expr<R>> Parser<R>::expression()
 {
   return conditional();
 }
 
 /**
- * @brief Parses a conditional expression.
+ * @brief Parses a declaration statement.
  * @tparam R The type of the expression that will be parsed.
- * @return A pointer to the parsed conditional expression.
+ * @return A smart pointer to the parsed declaration statement.
  */
 template <class R>
-Expr<R>* Parser<R>::conditional()
+std::shared_ptr<Stmt<R>> Parser<R>::declaration()
 {
-  Expr<R>* expr = comma();
-
-  if (match({QUESTION_MARK}))
+  try
   {
-    Expr<R>* then_branch = expression();
+    if (match(VAR))
+      return varDeclaration();
+
+    return statement();
+  }
+  catch (const ParseError& error)
+  {
+    synchronize();
+    return nullptr;
+  }
+}
+
+/**
+ * @brief Parses a statement.
+ * @tparam R The type of the expression that will be parsed.
+ * @return A smart pointer to the parsed statement.
+ */
+template <class R>
+std::shared_ptr<Stmt<R>> Parser<R>::statement()
+{
+  if (match(PRINT))
+    return printStatement();
+
+  return expressionStatement();
+}
+
+/**
+ * @brief Parses a variable declaration statement.
+ * @tparam R The type of the expression that will be parsed.
+ * @return A smart pointer to the parsed variable declaration statement.
+ */
+template <class R>
+std::shared_ptr<Stmt<R>> Parser<R>::varDeclaration()
+{
+  Token name = consume(IDENTIFIER, "Expect variable name.");
+  std::shared_ptr<Expr<R>> initializer = nullptr;
+  if (match(EQUAL))
+  {
+    initializer = expression();
+  }
+
+  consume(SEMICOLON, "Expect ';' after variable declaration.");
+  return std::make_shared<typename Stmt<R>::Var>(name, initializer);
+}
+
+/**
+ * @brief Parses a print statement.
+ * @tparam R The type of the expression that will be parsed.
+ * @return A smart pointer to the parsed print statement.
+ */
+template <class R>
+std::shared_ptr<Stmt<R>> Parser<R>::printStatement()
+{
+  std::shared_ptr<Expr<R>> value = expression();
+  consume(SEMICOLON, "Expect ';' after value.");
+
+  return std::make_shared<typename Stmt<R>::Print>(value);
+}
+
+/**
+ * @brief Parses an expression statement.
+ * @tparam R The type of the expression that will be parsed.
+ * @return A smart pointer to the parsed expression statement.
+ */
+template <class R>
+std::shared_ptr<Stmt<R>> Parser<R>::expressionStatement()
+{
+  std::shared_ptr<Expr<R>> expr = expression();
+  consume(SEMICOLON, "Expect ';' after expression.");
+
+  return std::make_shared<typename Stmt<R>::Expression>(expr);
+}
+
+/**
+ * @brief Parses a conditional expression.
+ * @tparam R The type of the expression that will be parsed.
+ * @return A smart pointer to the parsed conditional expression.
+ */
+template <class R>
+std::shared_ptr<Expr<R>> Parser<R>::conditional()
+{
+  std::shared_ptr<Expr<R>> expr = comma();
+
+  if (match(QUESTION_MARK))
+  {
+    std::shared_ptr<Expr<R>> then_branch = expression();
     consume(COLON, "Expect ':' after then branch of conditional expression.");
-    Expr<R>* else_branch = conditional();
-    expr = new Expr<R>::Conditional(expr, then_branch, else_branch);
-    registerExpr(expr);
+    std::shared_ptr<Expr<R>> else_branch = conditional();
+    expr = std::make_shared<typename Expr<R>::Conditional>(expr, then_branch, else_branch);
   }
 
   return expr;
@@ -56,19 +141,18 @@ Expr<R>* Parser<R>::conditional()
 /**
  * @brief Parses a comma expression.
  * @tparam R The type of the expression that will be parsed.
- * @return A pointer to the parsed comma expression.
+ * @return A smart pointer to the parsed comma expression.
  */
 template <class R>
-Expr<R>* Parser<R>::comma()
+std::shared_ptr<Expr<R>> Parser<R>::comma()
 {
-  Expr<R>* expr = equality();
+  std::shared_ptr<Expr<R>> expr = equality();
 
-  while (match({COMMA}))
+  while (match(COMMA))
   {
     Token oper = previous();
-    Expr<R>* right = equality();
-    expr = new Expr<R>::Binary(expr, oper, right);
-    registerExpr(expr);
+    std::shared_ptr<Expr<R>> right = equality();
+    expr = std::make_shared<typename Expr<R>::Binary>(expr, oper, right);
   }
 
   return expr;
@@ -77,19 +161,18 @@ Expr<R>* Parser<R>::comma()
 /**
  * @brief Parses an equality expression.
  * @tparam R The type of the expression that will be parsed.
- * @return A pointer to the parsed equality expression.
+ * @return A smart pointer to the parsed equality expression.
  */
 template <class R>
-Expr<R>* Parser<R>::equality()
+std::shared_ptr<Expr<R>> Parser<R>::equality()
 {
-  Expr<R>* expr = comparison();
+  std::shared_ptr<Expr<R>> expr = comparison();
 
   while (match({ BANG_EQUAL, EQUAL_EQUAL }))
   {
     Token oper = previous();
-    Expr<R>* right = comparison();
-    expr = new Expr<R>::Binary(expr, oper, right);
-    registerExpr(expr);
+    std::shared_ptr<Expr<R>> right = comparison();
+    expr = std::make_shared<typename Expr<R>::Binary>(expr, oper, right);
   }
 
   return expr;
@@ -98,19 +181,18 @@ Expr<R>* Parser<R>::equality()
 /**
  * @brief Parses a comparison expression.
  * @tparam R The type of the expression that will be parsed.
- * @return A pointer to the parsed comparison expression.
+ * @return A smart pointer to the parsed comparison expression.
  */
 template <class R>
-Expr<R>* Parser<R>::comparison()
+std::shared_ptr<Expr<R>> Parser<R>::comparison()
 {
-  Expr<R>* expr = term();
+  std::shared_ptr<Expr<R>> expr = term();
 
   while (match({ GREATER, GREATER_EQUAL, LESS, LESS_EQUAL }))
   {
     Token oper = previous();
-    Expr<R>* right = term();
-    expr = new Expr<R>::Binary(expr, oper, right);
-    registerExpr(expr);
+    std::shared_ptr<Expr<R>> right = term();
+    expr = std::make_shared<typename Expr<R>::Binary>(expr, oper, right);
   }
 
   return expr;
@@ -119,19 +201,18 @@ Expr<R>* Parser<R>::comparison()
 /**
  * @brief Parses a term expression.
  * @tparam R The type of the expression that will be parsed.
- * @return A pointer to the parsed term expression.
+ * @return A smart pointer to the parsed term expression.
  */
 template <class R>
-Expr<R>* Parser<R>::term()
+std::shared_ptr<Expr<R>> Parser<R>::term()
 {
-  Expr<R>* expr = factor();
+  std::shared_ptr<Expr<R>> expr = factor();
 
   while (match({ MINUS, PLUS }))
   {
     Token oper = previous();
-    Expr<R>* right = factor();
-    expr = new Expr<R>::Binary(expr, oper, right);
-    registerExpr(expr);
+    std::shared_ptr<Expr<R>> right = factor();
+    expr = std::make_shared<typename Expr<R>::Binary>(expr, oper, right);
   }
 
   return expr;
@@ -140,19 +221,18 @@ Expr<R>* Parser<R>::term()
 /**
  * @brief Parses a factor expression.
  * @tparam R The type of the expression that will be parsed.
- * @return A pointer to the parsed factor expression.
+ * @return A smart pointer to the parsed factor expression.
  */
 template <class R>
-Expr<R>* Parser<R>::factor()
+std::shared_ptr<Expr<R>> Parser<R>::factor()
 {
-  Expr<R>* expr = unary();
+  std::shared_ptr<Expr<R>> expr = unary();
 
   while (match({ SLASH, STAR }))
   {
-    Token oper =  previous();
-    Expr<R>* right = unary();
-    expr = new Expr<R>::Binary(expr, oper, right);
-    registerExpr(expr);
+    Token oper = previous();
+    std::shared_ptr<Expr<R>> right = unary();
+    expr = std::make_shared<typename Expr<R>::Binary>(expr, oper, right);
   }
 
   return expr;
@@ -161,18 +241,16 @@ Expr<R>* Parser<R>::factor()
 /**
  * @brief Parses a unary expression.
  * @tparam R The type of the expression that will be parsed.
- * @return A pointer to the parsed unary expression.
+ * @return A smart pointer to the parsed unary expression.
  */
 template <class R>
-Expr<R>* Parser<R>::unary()
+std::shared_ptr<Expr<R>> Parser<R>::unary()
 {
   if (match({ BANG, MINUS }))
   {
     Token oper = previous();
-    Expr<R>* right = unary();
-    Expr<R>* expr = new Expr<R>::Unary(oper, right);
-    registerExpr(expr);
-    return expr;
+    std::shared_ptr<Expr<R>> right = unary();
+    return std::make_shared<typename Expr<R>::Unary>(oper, right);
   }
 
   return primary();
@@ -181,29 +259,31 @@ Expr<R>* Parser<R>::unary()
 /**
  * @brief Parses a primary expression.
  * @tparam R The type of the expression that will be parsed.
- * @return A pointer to the parsed primary expression.
+ * @return A smart pointer to the parsed primary expression.
  */
 template <class R>
-Expr<R>* Parser<R>::primary()
+std::shared_ptr<Expr<R>> Parser<R>::primary()
 {
-  if (match(FALSE)) return new Expr<R>::Literal(false);
-  if (match(TRUE)) return new Expr<R>::Literal(true);
-  if (match(NIL)) return new Expr<R>::Literal(std::monostate()); // NULL
+  if (match(FALSE))
+    return std::make_shared<typename Expr<R>::Literal>(false);
+
+  if (match(TRUE))
+    return std::make_shared<typename Expr<R>::Literal>(true);
+
+  if (match(NIL))
+    return std::make_shared<typename Expr<R>::Literal>(std::monostate()); // NULL
 
   if (match({ NUMBER, STRING }))
-  {
-    Expr<R>* expr =  new Expr<R>::Literal(previous().literal);
-    registerExpr(expr);
-    return expr;
-  }
-  
+    return std::make_shared<typename Expr<R>::Literal>(previous().literal);
+
+  if (match(IDENTIFIER))
+    return std::make_shared<typename Expr<R>::Variable>(previous());
+
   if (match(LEFT_PAREN))
   {
-    Expr<R>* expr = expression();
+    std::shared_ptr<Expr<R>> expr = expression();
     consume(RIGHT_PAREN, "Expect ')' after expression.");
-    Expr<R>* grouping = new Expr<R>::Grouping(expr);
-    registerExpr(expr);
-    return grouping;
+    return std::make_shared<typename Expr<R>::Grouping>(expr);
   }
 
   throw error(peek(), "Expect expression.");
@@ -225,6 +305,7 @@ bool Parser<R>::match(const TokenType& type)
   }
   return false;
 }
+
 
 /**
  * @brief Checks if the current token matches any of the given types and advances if it does.
@@ -328,7 +409,6 @@ template <class R>
 ParseError Parser<R>::error(const Token& token, const std::string& message)
 {
   Lox::error(token, message);
-  cleanUpExprs();
   return ParseError(message);
 }
 
@@ -362,29 +442,4 @@ void Parser<R>::synchronize()
     }
     advance();
   }
-}
-
-/**
- * @brief Registers an allocated expression for cleanup.
- * @tparam R The type of the expression that will be parsed.
- * @param expr The expression to register.
- */
-template <class R>
-void Parser<R>::registerExpr(Expr<R>* expr)
-{
-  _allocated_exprs.push_back(expr);
-}
-
-/**
- * @brief Cleans up all allocated expressions.
- * @tparam R The type of the expression that will be parsed.
- */
-template <class R>
-void Parser<R>::cleanUpExprs()
-{
-  for (Expr<R>* expr : _allocated_exprs)
-  {
-    delete expr;
-  }
-  _allocated_exprs.clear();
 }

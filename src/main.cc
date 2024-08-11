@@ -15,6 +15,7 @@
 #include "Interpreter.h"
 #include "Parser.h"
 #include "Scanner.h"
+#include "Stmt.h"
 #include "Token.h"
 #include "utils.h"
 
@@ -38,19 +39,13 @@ void run(const std::string& source)
 
   // Parse the tokens.
   Parser<LiteralValue> parser(tokens);
-  Expr<LiteralValue>* expression = parser.parse();
+  std::vector<std::shared_ptr<Stmt<LiteralValue>>> statements = parser.parse();
 
-  if (had_error || expression == nullptr) return;
-
-  // Print the expression.
-  // AstPrinter ast_printer;
-  // std::cout << ast_printer.print(*expression) << std::endl;
-
+  if (had_error) return;
+  
   // Interpret the expression.
   Interpreter interpreter;
-  interpreter.interpret(expression);
-
-  delete expression;
+  interpreter.interpret(statements);
 }
 
 /**
@@ -107,6 +102,7 @@ void runPrompt()
 
     // Execute command and continue even on encountering errors.
     run(line);
+
     had_error = false;
 
     // End loop on end-of-file.

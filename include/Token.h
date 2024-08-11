@@ -61,6 +61,10 @@ enum TokenType
   END /**< Token to signify the end of the file */
 };
 
+// std::variant is a type safe union monostate acts as empty 
+using LiteralValue = std::variant<std::monostate, std::string, double, bool>;
+
+
 /**
  * @class Token
  * @brief Represents a token with its type, lexeme, literal
@@ -68,9 +72,6 @@ enum TokenType
 class Token
 {
 public:
-  // std::variant is a type safe union monostate acts as empty 
-  using LiteralValue = std::variant<std::monostate, std::string, double>;
-
   const TokenType type; /**< Type of the token. */
   const std::string lexeme; /**< Lexeme of the token. */
   const LiteralValue literal; /**< Literal value of the token, if applicable. */

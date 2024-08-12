@@ -2,7 +2,6 @@ import os
 import sys
 from typing import List, TextIO, Dict
 
-
 class Param:
     def __init__(self, value):
         self.value = value
@@ -11,7 +10,6 @@ class Param:
 
     def isPointer(self, value: str) -> bool:
         return '*' in value
-
 
 def defineConstructor(
         file: TextIO,
@@ -153,18 +151,20 @@ def main() -> None:
     output_dir: str = sys.argv[1]
 
     defineAst(output_dir, "Expr", [
-            "Binary      : const Expr<R>* left, const Token& oper, const Expr<R>* right",
-            "Grouping    : const Expr<R>* expression",
+            "Assign      : const Token& name, const std::shared_ptr<const Expr<R>>& value",
+            "Binary      : const std::shared_ptr<const Expr<R>>& left, const Token& oper, const std::shared_ptr<const Expr<R>>& right",
+            "Grouping    : const std::shared_ptr<const Expr<R>>& expression",
             "Literal     : const LiteralValue& value",
-            "Unary       : const Token& oper, const Expr<R>* right",
-            "Conditional : const Expr<R>* condition, const Expr<R>* then_branch, const Expr<R>* else_branch",
+            "Unary       : const Token& oper, const std::shared_ptr<const Expr<R>>& right",
+            "Conditional : const std::shared_ptr<const Expr<R>>& condition, const std::shared_ptr<const Expr<R>>& then_branch, const std::shared_ptr<const Expr<R>>& else_branch",
             "Variable    : const Token& name"
     ])
 
     defineAst(output_dir, "Stmt",[
-            "Expression : const Expr<R>* expression",
-            "Print      : const Expr<R>* expression",
-            "Var        : const Token& name, const Expr<R>* initializer"
+            "Block      : const std::vector<std::shared_ptr<const Stmt<R>>>& statements",
+            "Expression : const std::shared_ptr<const Expr<R>>& expression",
+            "Print      : const std::shared_ptr<const Expr<R>>& expression",
+            "Var        : const Token& name, const std::shared_ptr<const Expr<R>>& initializer"
     ])
     
 if __name__ == "__main__":

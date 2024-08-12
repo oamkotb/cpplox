@@ -79,6 +79,16 @@ public:
   LiteralValue visitVariableExpr(const Expr<LiteralValue>::Variable& expr) override;
 
   /**
+   * CHANGE THIS COMMENT
+   */
+  LiteralValue visitAssignExpr(const Expr<LiteralValue>::Assign& expr) override;
+
+  /**
+   * CHANGE THIS COMMENT
+   */
+  LiteralValue visitBlockStmt(const Stmt<LiteralValue>::Block& stmt) override;
+
+  /**
    * @brief Visits an expression statement and evaluates the expression.
    * 
    * @param stmt The expression statement to execute.
@@ -113,6 +123,10 @@ private:
    */
   LiteralValue evaluate(const std::shared_ptr<const Expr<LiteralValue>>& expr);
 
+  /**
+   * CHANGE THIS COMMENT
+   */
+  void executeBlock(const std::vector<std::shared_ptr<const Stmt<LiteralValue>>>& statements, const Environment& environment);
   /**
    * @brief Executes a statement.
    * 

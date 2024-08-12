@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Token.h"
-#include <memory>
 
 template <class R>
 class Expr
@@ -9,6 +8,7 @@ class Expr
 public:
   virtual ~Expr() = default;
 
+  class Assign;
   class Binary;
   class Grouping;
   class Literal;
@@ -18,22 +18,39 @@ public:
 
   struct Visitor
   {
-    virtual R visitBinaryExpr(const typename Expr<R>::Binary& expr) = 0;
-    virtual R visitGroupingExpr(const typename Expr<R>::Grouping& expr) = 0;
-    virtual R visitLiteralExpr(const typename Expr<R>::Literal& expr) = 0;
-    virtual R visitUnaryExpr(const typename Expr<R>::Unary& expr) = 0;
-    virtual R visitConditionalExpr(const typename Expr<R>::Conditional& expr) = 0;
-    virtual R visitVariableExpr(const typename Expr<R>::Variable& expr) = 0;
+    virtual R visitAssignExpr(const Expr<R>::Assign& expr) = 0;
+    virtual R visitBinaryExpr(const Expr<R>::Binary& expr) = 0;
+    virtual R visitGroupingExpr(const Expr<R>::Grouping& expr) = 0;
+    virtual R visitLiteralExpr(const Expr<R>::Literal& expr) = 0;
+    virtual R visitUnaryExpr(const Expr<R>::Unary& expr) = 0;
+    virtual R visitConditionalExpr(const Expr<R>::Conditional& expr) = 0;
+    virtual R visitVariableExpr(const Expr<R>::Variable& expr) = 0;
   };
 
   virtual R accept(Visitor& visitor) const = 0;
 };
 
 template <class R>
+class Expr<R>::Assign : public Expr<R>
+{
+public:
+  Assign(const Token& name, const std::shared_ptr<const Expr<R>>& value):
+    name(name), value(value) {}
+
+  R accept(Expr<R>::Visitor& visitor) const override
+  {
+    return visitor.visitAssignExpr(*this);
+  }
+
+  const Token name;
+  const std::shared_ptr<const Expr<R>> value;
+};
+
+template <class R>
 class Expr<R>::Binary : public Expr<R>
 {
 public:
-  Binary(std::shared_ptr<const Expr<R>> left, const Token& oper, std::shared_ptr<const Expr<R>> right):
+  Binary(const std::shared_ptr<const Expr<R>>& left, const Token& oper, const std::shared_ptr<const Expr<R>>& right):
     left(left), oper(oper), right(right) {}
 
   R accept(Expr<R>::Visitor& visitor) const override
@@ -41,16 +58,16 @@ public:
     return visitor.visitBinaryExpr(*this);
   }
 
-  std::shared_ptr<const Expr<R>> left;
+  const std::shared_ptr<const Expr<R>> left;
   const Token oper;
-  std::shared_ptr<const Expr<R>> right;
+  const std::shared_ptr<const Expr<R>> right;
 };
 
 template <class R>
 class Expr<R>::Grouping : public Expr<R>
 {
 public:
-  Grouping(std::shared_ptr<const Expr<R>> expression):
+  Grouping(const std::shared_ptr<const Expr<R>>& expression):
     expression(expression) {}
 
   R accept(Expr<R>::Visitor& visitor) const override
@@ -58,7 +75,7 @@ public:
     return visitor.visitGroupingExpr(*this);
   }
 
-  std::shared_ptr<const Expr<R>> expression;
+  const std::shared_ptr<const Expr<R>> expression;
 };
 
 template <class R>
@@ -80,7 +97,7 @@ template <class R>
 class Expr<R>::Unary : public Expr<R>
 {
 public:
-  Unary(const Token& oper, std::shared_ptr<const Expr<R>> right):
+  Unary(const Token& oper, const std::shared_ptr<const Expr<R>>& right):
     oper(oper), right(right) {}
 
   R accept(Expr<R>::Visitor& visitor) const override
@@ -89,14 +106,14 @@ public:
   }
 
   const Token oper;
-  std::shared_ptr<const Expr<R>> right;
+  const std::shared_ptr<const Expr<R>> right;
 };
 
 template <class R>
 class Expr<R>::Conditional : public Expr<R>
 {
 public:
-  Conditional(std::shared_ptr<const Expr<R>> condition, std::shared_ptr<const Expr<R>> then_branch, std::shared_ptr<const Expr<R>> else_branch):
+  Conditional(const std::shared_ptr<const Expr<R>>& condition, const std::shared_ptr<const Expr<R>>& then_branch, const std::shared_ptr<const Expr<R>>& else_branch):
     condition(condition), then_branch(then_branch), else_branch(else_branch) {}
 
   R accept(Expr<R>::Visitor& visitor) const override
@@ -104,9 +121,9 @@ public:
     return visitor.visitConditionalExpr(*this);
   }
 
-  std::shared_ptr<const Expr<R>> condition;
-  std::shared_ptr<const Expr<R>> then_branch;
-  std::shared_ptr<const Expr<R>> else_branch;
+  const std::shared_ptr<const Expr<R>> condition;
+  const std::shared_ptr<const Expr<R>> then_branch;
+  const std::shared_ptr<const Expr<R>> else_branch;
 };
 
 template <class R>

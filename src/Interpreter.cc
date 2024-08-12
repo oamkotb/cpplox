@@ -151,6 +151,26 @@ LiteralValue Interpreter::visitVariableExpr(const Expr<LiteralValue>::Variable& 
 }
 
 /**
+ * CHANGE THIS COMMENT
+ */
+LiteralValue Interpreter::visitAssignExpr(const Expr<LiteralValue>::Assign& expr)
+{
+  LiteralValue value = evaluate(expr.value);
+  _environment.assign(expr.name, value);
+
+  return value;
+}
+
+/**
+ * CHANGE THIS COMMENT
+ */
+LiteralValue Interpreter::visitBlockStmt(const Stmt<LiteralValue>::Block& stmt)
+{
+  executeBlock(stmt.statements, Environment(std::make_shared<Environment>(_environment)));  
+  return std::monostate();
+}
+
+/**
  * @brief Visits an expression statement and evaluates the expression.
  * 
  * @param stmt The expression statement to execute.
@@ -200,6 +220,17 @@ LiteralValue Interpreter::visitVarStmt(const Stmt<LiteralValue>::Var& stmt)
 LiteralValue Interpreter::evaluate(const std::shared_ptr<const Expr<LiteralValue>>& expr)
 {
   return expr->accept(*this);
+}
+
+/**
+ * CHANGE THIS COMMENT
+ */
+void Interpreter::executeBlock(const std::vector<std::shared_ptr<const Stmt<LiteralValue>>>& statements, const Environment& environment)
+{
+  EnvironmentGuard guard(this->_environment, environment);
+  for (const std::shared_ptr<const Stmt<LiteralValue>> statement : statements)
+    execute(statement);
+
 }
 
 /**

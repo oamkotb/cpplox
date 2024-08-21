@@ -49,7 +49,7 @@ namespace Lox
    */
   void runtimeError(const RuntimeError& error)
   {
-    std::cerr << error.what() << "\n[line " << error.token.line + "]" << std::endl;
+    std::cerr << error.what() << "\n[line " << error.token.line << "]" << std::endl;
     had_runtime_error = true;
   }
 }

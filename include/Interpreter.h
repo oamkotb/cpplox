@@ -79,6 +79,27 @@ public:
   LiteralValue visitVariableExpr(const Expr<LiteralValue>::Variable& expr) override;
 
   /**
+   * @brief Visits an assignment expression and updates the variable value in the environment.
+   * 
+   * Assigns a new value to a variable and updates its value in the environment.
+   * 
+   * @param expr The assignment expression to evaluate.
+   * @return The result of the assignment operation.
+   */
+  LiteralValue visitAssignExpr(const Expr<LiteralValue>::Assign& expr) override;
+
+
+  /**
+   * @brief Visits a block statement and executes all statements in the block.
+   * 
+   * Executes a block of statements in a new environment that is a child of the current environment.
+   * 
+   * @param stmt The block statement to execute.
+   * @return The result of executing the block statement.
+   */
+  LiteralValue visitBlockStmt(const Stmt<LiteralValue>::Block& stmt) override;
+
+  /**
    * @brief Visits an expression statement and evaluates the expression.
    * 
    * @param stmt The expression statement to execute.
@@ -113,6 +134,16 @@ private:
    */
   LiteralValue evaluate(const std::shared_ptr<const Expr<LiteralValue>>& expr);
 
+  /**
+   * @brief Executes a block of statements in a new environment.
+   * 
+   * Executes a sequence of statements within a new environment, which is a child of the current environment.
+   * 
+   * @param statements The statements to execute.
+   * @param environment The environment to use for executing the block.
+   */
+  void executeBlock(const std::vector<std::shared_ptr<const Stmt<LiteralValue>>>& statements, const Environment& environment);
+  
   /**
    * @brief Executes a statement.
    * 

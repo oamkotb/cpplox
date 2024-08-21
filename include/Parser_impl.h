@@ -15,9 +15,7 @@ std::vector<std::shared_ptr<Stmt<R>>> Parser<R>::parse()
   {
     std::shared_ptr<Stmt<R>> stmt = declaration();
     if (stmt != nullptr)
-    {
       statements.push_back(stmt);
-    }
   }
 
   return statements;
@@ -31,7 +29,7 @@ std::vector<std::shared_ptr<Stmt<R>>> Parser<R>::parse()
 template <class R>
 std::shared_ptr<Expr<R>> Parser<R>::expression()
 {
-  return conditional();
+  return comma();
 }
 
 /**
@@ -64,10 +62,27 @@ std::shared_ptr<Stmt<R>> Parser<R>::declaration()
 template <class R>
 std::shared_ptr<Stmt<R>> Parser<R>::statement()
 {
-  if (match(PRINT))
-    return printStatement();
+  if (match(PRINT)) return printStatement();
+  if (match(LEFT_BRACE)) return std::make_shared<typename Stmt<R>::Block>(block());
 
   return expressionStatement();
+}
+
+/**
+ * @brief Parses a block of statements enclosed in braces.
+ * @tparam R The type of the expression that will be parsed.
+ * @return A vector of smart pointers to the parsed block statements.
+ */
+template <class R>
+std::vector<std::shared_ptr<const Stmt<R>>> Parser<R>::block()
+{
+  std::vector<std::shared_ptr<const Stmt<R>>> statements; 
+
+  while (!check(RIGHT_BRACE) && !isAtEnd())
+    statements.push_back(declaration());
+
+  consume(RIGHT_BRACE, "Expect '}' after block.");
+  return statements;
 }
 
 /**
@@ -80,10 +95,9 @@ std::shared_ptr<Stmt<R>> Parser<R>::varDeclaration()
 {
   Token name = consume(IDENTIFIER, "Expect variable name.");
   std::shared_ptr<Expr<R>> initializer = nullptr;
+
   if (match(EQUAL))
-  {
     initializer = expression();
-  }
 
   consume(SEMICOLON, "Expect ';' after variable declaration.");
   return std::make_shared<typename Stmt<R>::Var>(name, initializer);
@@ -118,6 +132,35 @@ std::shared_ptr<Stmt<R>> Parser<R>::expressionStatement()
 }
 
 /**
+ * @brief Parses an assignment expression.
+ * @tparam R The type of the expression that will be parsed.
+ * @return A smart pointer to the parsed assignment expression.
+ */
+template <class R>
+std::shared_ptr<Expr<R>> Parser<R>::assignment()
+{
+  std::shared_ptr<Expr<R>> expr = conditional();
+
+  if (match(EQUAL))
+  {
+    Token equals = previous();
+    std::shared_ptr<Expr<R>> value = assignment();
+    
+    // Attempt to cast expr to a std::shared_ptr of Expr<R>::Variable
+    auto variableExpr = std::dynamic_pointer_cast<typename Expr<R>::Variable>(expr);
+    if (variableExpr) {
+        Token name = variableExpr->name;
+        return std::make_shared<typename Expr<R>::Assign>(name, value);
+    }
+
+    error(equals, "Invalid assignment target.");
+  }
+
+  
+  return expr;
+}
+
+/**
  * @brief Parses a conditional expression.
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed conditional expression.
@@ -125,7 +168,7 @@ std::shared_ptr<Stmt<R>> Parser<R>::expressionStatement()
 template <class R>
 std::shared_ptr<Expr<R>> Parser<R>::conditional()
 {
-  std::shared_ptr<Expr<R>> expr = comma();
+  std::shared_ptr<Expr<R>> expr = equality();
 
   if (match(QUESTION_MARK))
   {
@@ -146,12 +189,12 @@ std::shared_ptr<Expr<R>> Parser<R>::conditional()
 template <class R>
 std::shared_ptr<Expr<R>> Parser<R>::comma()
 {
-  std::shared_ptr<Expr<R>> expr = equality();
+  std::shared_ptr<Expr<R>> expr = assignment();
 
   while (match(COMMA))
   {
     Token oper = previous();
-    std::shared_ptr<Expr<R>> right = equality();
+    std::shared_ptr<Expr<R>> right = assignment();
     expr = std::make_shared<typename Expr<R>::Binary>(expr, oper, right);
   }
 

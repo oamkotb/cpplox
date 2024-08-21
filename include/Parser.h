@@ -58,6 +58,13 @@ private:
   std::shared_ptr<Expr<R>> expression();
 
   /**
+   * @brief Parses a block of statements enclosed in braces.
+   * @tparam R The type of the expression that will be parsed.
+   * @return A vector of smart pointers to the parsed block statements.
+   */
+  std::vector<std::shared_ptr<const Stmt<R>>> block();
+
+  /**
    * @brief Parses a declaration statement.
    * @return A smart pointer to the parsed declaration statement.
    */
@@ -87,6 +94,13 @@ private:
    */
   std::shared_ptr<Stmt<R>> expressionStatement();
 
+  /**
+   * @brief Parses an assignment expression.
+   * @tparam R The type of the expression that will be parsed.
+   * @return A smart pointer to the parsed assignment expression.
+   */
+  std::shared_ptr<Expr<R>> assignment();
+  
   /**
    * @brief Parses a conditional expression.
    * @return A smart pointer to the parsed conditional expression.

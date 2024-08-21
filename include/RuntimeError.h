@@ -11,5 +11,5 @@ public:
   RuntimeError(const Token& token, const std::string& message)
     : std::runtime_error(message), token(token) {}
 
-  Token token;
+  const Token token;
 };

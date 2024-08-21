@@ -151,7 +151,12 @@ LiteralValue Interpreter::visitVariableExpr(const Expr<LiteralValue>::Variable& 
 }
 
 /**
- * CHANGE THIS COMMENT
+ * @brief Visits an assignment expression and updates the variable value in the environment.
+ * 
+ * Assigns a new value to a variable and updates its value in the environment.
+ * 
+ * @param expr The assignment expression to evaluate.
+ * @return The result of the assignment operation.
  */
 LiteralValue Interpreter::visitAssignExpr(const Expr<LiteralValue>::Assign& expr)
 {
@@ -162,7 +167,12 @@ LiteralValue Interpreter::visitAssignExpr(const Expr<LiteralValue>::Assign& expr
 }
 
 /**
- * CHANGE THIS COMMENT
+ * @brief Visits a block statement and executes all statements in the block.
+ * 
+ * Executes a block of statements in a new environment that is a child of the current environment.
+ * 
+ * @param stmt The block statement to execute.
+ * @return The result of executing the block statement.
  */
 LiteralValue Interpreter::visitBlockStmt(const Stmt<LiteralValue>::Block& stmt)
 {
@@ -223,14 +233,18 @@ LiteralValue Interpreter::evaluate(const std::shared_ptr<const Expr<LiteralValue
 }
 
 /**
- * CHANGE THIS COMMENT
+ * @brief Executes a block of statements in a new environment.
+ * 
+ * Executes a sequence of statements within a new environment, which is a child of the current environment.
+ * 
+ * @param statements The statements to execute.
+ * @param environment The environment to use for executing the block.
  */
 void Interpreter::executeBlock(const std::vector<std::shared_ptr<const Stmt<LiteralValue>>>& statements, const Environment& environment)
 {
   EnvironmentGuard guard(this->_environment, environment);
   for (const std::shared_ptr<const Stmt<LiteralValue>> statement : statements)
     execute(statement);
-
 }
 
 /**
@@ -241,6 +255,8 @@ void Interpreter::executeBlock(const std::vector<std::shared_ptr<const Stmt<Lite
  */
 LiteralValue Interpreter::execute(const std::shared_ptr<const Stmt<LiteralValue>>& stmt)
 {
+  if (stmt == nullptr) return std::monostate();
+  
   return stmt->accept(*this);
 }
 

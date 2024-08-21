@@ -29,7 +29,7 @@ std::vector<std::shared_ptr<Stmt<R>>> Parser<R>::parse()
 template <class R>
 std::shared_ptr<Expr<R>> Parser<R>::expression()
 {
-  return assignment();
+  return comma();
 }
 
 /**
@@ -69,7 +69,9 @@ std::shared_ptr<Stmt<R>> Parser<R>::statement()
 }
 
 /**
- * CHANGE THIS COMMENT
+ * @brief Parses a block of statements enclosed in braces.
+ * @tparam R The type of the expression that will be parsed.
+ * @return A vector of smart pointers to the parsed block statements.
  */
 template <class R>
 std::vector<std::shared_ptr<const Stmt<R>>> Parser<R>::block()
@@ -93,10 +95,9 @@ std::shared_ptr<Stmt<R>> Parser<R>::varDeclaration()
 {
   Token name = consume(IDENTIFIER, "Expect variable name.");
   std::shared_ptr<Expr<R>> initializer = nullptr;
+
   if (match(EQUAL))
-  {
     initializer = expression();
-  }
 
   consume(SEMICOLON, "Expect ';' after variable declaration.");
   return std::make_shared<typename Stmt<R>::Var>(name, initializer);
@@ -131,12 +132,14 @@ std::shared_ptr<Stmt<R>> Parser<R>::expressionStatement()
 }
 
 /**
- * CHANGE THIS COMMENT
+ * @brief Parses an assignment expression.
+ * @tparam R The type of the expression that will be parsed.
+ * @return A smart pointer to the parsed assignment expression.
  */
 template <class R>
 std::shared_ptr<Expr<R>> Parser<R>::assignment()
 {
-  std::shared_ptr<Expr<R>> expr = equality();
+  std::shared_ptr<Expr<R>> expr = conditional();
 
   if (match(EQUAL))
   {
@@ -165,7 +168,7 @@ std::shared_ptr<Expr<R>> Parser<R>::assignment()
 template <class R>
 std::shared_ptr<Expr<R>> Parser<R>::conditional()
 {
-  std::shared_ptr<Expr<R>> expr = comma();
+  std::shared_ptr<Expr<R>> expr = equality();
 
   if (match(QUESTION_MARK))
   {
@@ -186,12 +189,12 @@ std::shared_ptr<Expr<R>> Parser<R>::conditional()
 template <class R>
 std::shared_ptr<Expr<R>> Parser<R>::comma()
 {
-  std::shared_ptr<Expr<R>> expr = equality();
+  std::shared_ptr<Expr<R>> expr = assignment();
 
   while (match(COMMA))
   {
     Token oper = previous();
-    std::shared_ptr<Expr<R>> right = equality();
+    std::shared_ptr<Expr<R>> right = assignment();
     expr = std::make_shared<typename Expr<R>::Binary>(expr, oper, right);
   }
 

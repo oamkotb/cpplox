@@ -19,6 +19,7 @@
 #include "Token.h"
 #include "utils.h"
 
+Interpreter interpreter; // Persistent interpreter object
 bool had_error = false; // Extern
 
 /**
@@ -44,7 +45,6 @@ void run(const std::string& source)
   if (had_error) return;
   
   // Interpret the expression.
-  Interpreter interpreter;
   interpreter.interpret(statements);
 }
 

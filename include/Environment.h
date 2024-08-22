@@ -48,6 +48,7 @@ public:
   void assign(const Token& name, const LiteralValue& value);
 
 private:
+  friend class EnvironmentGuard;
   std::shared_ptr<Environment> _enclosing;
   std::unordered_map<std::string, LiteralValue> _values;
 };
@@ -55,18 +56,18 @@ private:
 class EnvironmentGuard
 {
 public:
-  EnvironmentGuard(Environment& currentEnv, const Environment& newEnv)
-    : _previousEnv(currentEnv), _currentEnv(currentEnv)
+  EnvironmentGuard(Environment& current_env, const Environment& new_env)
+    : _previous_env(std::move(current_env._enclosing)), _current_env(current_env)
   {
-    currentEnv = newEnv;
+    _current_env._enclosing = std::move(std::make_shared<Environment>(new_env));
   }
 
   ~EnvironmentGuard()
   {
-    _currentEnv = _previousEnv;  // Restore the previous environment
+    _current_env._enclosing = std::move(_previous_env);  // Restore the previous environment
   }
 
 private:
-  const Environment _previousEnv;
-  Environment& _currentEnv;
+  std::shared_ptr<Environment> _previous_env;
+  Environment& _current_env;
 };

@@ -12,8 +12,9 @@ public:
   class Binary;
   class Grouping;
   class Literal;
+  class Logical;
   class Unary;
-  class Conditional;
+  class Ternary;
   class Variable;
 
   struct Visitor
@@ -22,8 +23,9 @@ public:
     virtual R visitBinaryExpr(const Expr<R>::Binary& expr) = 0;
     virtual R visitGroupingExpr(const Expr<R>::Grouping& expr) = 0;
     virtual R visitLiteralExpr(const Expr<R>::Literal& expr) = 0;
+    virtual R visitLogicalExpr(const Expr<R>::Logical& expr) = 0;
     virtual R visitUnaryExpr(const Expr<R>::Unary& expr) = 0;
-    virtual R visitConditionalExpr(const Expr<R>::Conditional& expr) = 0;
+    virtual R visitTernaryExpr(const Expr<R>::Ternary& expr) = 0;
     virtual R visitVariableExpr(const Expr<R>::Variable& expr) = 0;
   };
 
@@ -94,6 +96,23 @@ public:
 };
 
 template <class R>
+class Expr<R>::Logical : public Expr<R>
+{
+public:
+  Logical(const std::shared_ptr<const Expr<R>>& left, const Token& oper, const std::shared_ptr<const Expr<R>>& right):
+    left(left), oper(oper), right(right) {}
+
+  R accept(Expr<R>::Visitor& visitor) const override
+  {
+    return visitor.visitLogicalExpr(*this);
+  }
+
+  const std::shared_ptr<const Expr<R>> left;
+  const Token oper;
+  const std::shared_ptr<const Expr<R>> right;
+};
+
+template <class R>
 class Expr<R>::Unary : public Expr<R>
 {
 public:
@@ -110,15 +129,15 @@ public:
 };
 
 template <class R>
-class Expr<R>::Conditional : public Expr<R>
+class Expr<R>::Ternary : public Expr<R>
 {
 public:
-  Conditional(const std::shared_ptr<const Expr<R>>& condition, const std::shared_ptr<const Expr<R>>& then_branch, const std::shared_ptr<const Expr<R>>& else_branch):
+  Ternary(const std::shared_ptr<const Expr<R>>& condition, const std::shared_ptr<const Expr<R>>& then_branch, const std::shared_ptr<const Expr<R>>& else_branch):
     condition(condition), then_branch(then_branch), else_branch(else_branch) {}
 
   R accept(Expr<R>::Visitor& visitor) const override
   {
-    return visitor.visitConditionalExpr(*this);
+    return visitor.visitTernaryExpr(*this);
   }
 
   const std::shared_ptr<const Expr<R>> condition;

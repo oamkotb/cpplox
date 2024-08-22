@@ -47,6 +47,13 @@ public:
   LiteralValue visitLiteralExpr(const Expr<LiteralValue>::Literal& expr) override;
 
   /**
+   * @brief Evaluates a logical expression.
+   * @param expr The logical expression to be evaluated.
+   * @return The resulting LiteralValue after evaluating the logical expression.
+   */
+  LiteralValue visitLogicalExpr(const Expr<LiteralValue>::Logical& expr) override;
+
+  /**
    * @brief Visits a grouping expression and evaluates the expression inside the group.
    * 
    * @param expr The grouping expression to evaluate.
@@ -63,12 +70,12 @@ public:
   LiteralValue visitUnaryExpr(const Expr<LiteralValue>::Unary& expr) override;
 
   /**
-   * @brief Visits a conditional expression (ternary operator) and evaluates it.
+   * @brief Visits a ternary expression (ternary operator) and evaluates it.
    * 
-   * @param expr The conditional expression to evaluate.
-   * @return The result of evaluating the conditional expression.
+   * @param expr The ternary expression to evaluate.
+   * @return The result of evaluating the ternary expression.
    */
-  LiteralValue visitConditionalExpr(const Expr<LiteralValue>::Conditional& expr) override;
+  LiteralValue visitTernaryExpr(const Expr<LiteralValue>::Ternary& expr) override;
 
   /**
    * @brief Visits a variable expression and returns its value from the environment.
@@ -95,7 +102,7 @@ public:
    * Executes a block of statements in a new environment that is a child of the current environment.
    * 
    * @param stmt The block statement to execute.
-   * @return The result of executing the block statement.
+   * @return A `std::monostate` indicating that a statement does not return a value.
    */
   LiteralValue visitBlockStmt(const Stmt<LiteralValue>::Block& stmt) override;
 
@@ -103,15 +110,22 @@ public:
    * @brief Visits an expression statement and evaluates the expression.
    * 
    * @param stmt The expression statement to execute.
-   * @return The result of evaluating the expression.
+   * @return  A `std::monostate` indicating that a statement does not return a value.
    */
   LiteralValue visitExpressionStmt(const Stmt<LiteralValue>::Expression& stmt) override;
+
+  /**
+   * @brief Evaluates an if statement.
+   * @param stmt The if statement to be evaluated.
+   * @return A `std::monostate` indicating that the if statement does not return a value.
+   */
+  LiteralValue visitIfStmt(const Stmt<LiteralValue>::If& stmt) override;
 
   /**
    * @brief Visits a print statement and evaluates the expression, then prints its value.
    * 
    * @param stmt The print statement to execute.
-   * @return The result of evaluating the print statement.
+   * @return A `std::monostate` indicating that a statement does not return a value.
    */
   LiteralValue visitPrintStmt(const Stmt<LiteralValue>::Print& stmt) override;
 
@@ -119,9 +133,16 @@ public:
    * @brief Visits a variable declaration statement and adds the variable to the environment.
    * 
    * @param stmt The variable declaration statement to execute.
-   * @return The result of executing the variable declaration statement.
+   * @return A `std::monostate` indicating that a statement does not return a value.
    */
   LiteralValue visitVarStmt(const Stmt<LiteralValue>::Var& stmt) override;
+
+  /**
+   * @brief Evaluates a while loop statement.
+   * @param stmt The while statement to be evaluated.
+   * @return A `std::monostate` indicating that the while statement does not return a value.
+   */
+  LiteralValue visitWhileStmt(const Stmt<LiteralValue>::While& stmt) override;
 
 private:
   Environment _environment;  ///< The environment that stores variables and their values.

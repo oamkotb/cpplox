@@ -90,6 +90,26 @@ LiteralValue Interpreter::visitLiteralExpr(const Expr<LiteralValue>::Literal& ex
 }
 
 /**
+ * @brief Evaluates a logical expression. 
+ * @param expr The logical expression to be evaluated.
+ * @return The resulting LiteralValue after evaluating the logical expression.
+ */
+LiteralValue Interpreter::visitLogicalExpr(const Expr<LiteralValue>::Logical& expr)
+{
+  LiteralValue left = evaluate(expr.left);
+
+  if (expr.oper.type == TokenType::OR)
+  {
+    if (isTruthy(left)) return left;
+  }
+  else
+  {
+    if (!isTruthy(left)) return left;
+  }
+  return evaluate(expr.right);
+}
+  
+/**
  * @brief Visits a grouping expression and evaluates the expression inside the group.
  * 
  * @param expr The grouping expression to evaluate.
@@ -124,12 +144,12 @@ LiteralValue Interpreter::visitUnaryExpr(const Expr<LiteralValue>::Unary& expr)
 }
 
 /**
- * @brief Visits a conditional expression (ternary operator) and evaluates it.
+ * @brief Visits a ternary expression (ternary operator) and evaluates it.
  * 
- * @param expr The conditional expression to evaluate.
- * @return The result of evaluating the conditional expression.
+ * @param expr The ternary expression to evaluate.
+ * @return The result of evaluating the ternary expression.
  */
-LiteralValue Interpreter::visitConditionalExpr(const Expr<LiteralValue>::Conditional& expr)
+LiteralValue Interpreter::visitTernaryExpr(const Expr<LiteralValue>::Ternary& expr)
 {
   LiteralValue condition = evaluate(expr.condition);
 
@@ -172,7 +192,7 @@ LiteralValue Interpreter::visitAssignExpr(const Expr<LiteralValue>::Assign& expr
  * Executes a block of statements in a new environment that is a child of the current environment.
  * 
  * @param stmt The block statement to execute.
- * @return The result of executing the block statement.
+ * @return A `std::monostate` indicating that a statement does not return a value.
  */
 LiteralValue Interpreter::visitBlockStmt(const Stmt<LiteralValue>::Block& stmt)
 {
@@ -184,7 +204,7 @@ LiteralValue Interpreter::visitBlockStmt(const Stmt<LiteralValue>::Block& stmt)
  * @brief Visits an expression statement and evaluates the expression.
  * 
  * @param stmt The expression statement to execute.
- * @return The result of evaluating the expression.
+ * @return  A `std::monostate` indicating that the expression statement does not return a value.
  */
 LiteralValue Interpreter::visitExpressionStmt(const Stmt<LiteralValue>::Expression& stmt)
 {
@@ -193,10 +213,25 @@ LiteralValue Interpreter::visitExpressionStmt(const Stmt<LiteralValue>::Expressi
 }
 
 /**
+ * @brief Evaluates an if statement.
+ * @param stmt The if statement to be evaluated.
+ * @return A `std::monostate` indicating that the if statement does not return a value.
+ */
+LiteralValue Interpreter::visitIfStmt(const Stmt<LiteralValue>::If& stmt)
+{
+  if (isTruthy(evaluate(stmt.condition)))
+    execute(stmt.then_branch);
+  else if (stmt.else_branch != nullptr)
+    execute(stmt.else_branch);
+  
+  return std::monostate();
+}
+
+/**
  * @brief Visits a print statement and evaluates the expression, then prints its value.
  * 
  * @param stmt The print statement to execute.
- * @return The result of evaluating the print statement.
+ * @return A `std::monostate` indicating that a statement does not return a value.
  */
 LiteralValue Interpreter::visitPrintStmt(const Stmt<LiteralValue>::Print& stmt)
 {
@@ -209,7 +244,7 @@ LiteralValue Interpreter::visitPrintStmt(const Stmt<LiteralValue>::Print& stmt)
  * @brief Visits a variable declaration statement and adds the variable to the environment.
  * 
  * @param stmt The variable declaration statement to execute.
- * @return The result of executing the variable declaration statement.
+ * @return A `std::monostate` indicating that a statement does not return a value.
  */
 LiteralValue Interpreter::visitVarStmt(const Stmt<LiteralValue>::Var& stmt)
 {
@@ -218,6 +253,19 @@ LiteralValue Interpreter::visitVarStmt(const Stmt<LiteralValue>::Var& stmt)
     value = evaluate(stmt.initializer);
 
   _environment.define(stmt.name.lexeme, value);
+  return std::monostate();
+}
+
+/**
+ * @brief Evaluates a while loop statement.
+ * @param stmt The while statement to be evaluated.
+ * @return A `std::monostate` indicating that the while statement does not return a value.
+ */
+LiteralValue Interpreter::visitWhileStmt(const Stmt<LiteralValue>::While& stmt)
+{
+  while (isTruthy(evaluate(stmt.condition)))
+    execute(stmt.body);
+  
   return std::monostate();
 }
 

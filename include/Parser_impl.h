@@ -33,6 +33,23 @@ std::shared_ptr<Expr<R>> Parser<R>::expression()
 }
 
 /**
+ * @brief Parses a block of statements enclosed in braces.
+ * @tparam R The type of the expression that will be parsed.
+ * @return A vector of smart pointers to the parsed block statements.
+ */
+template <class R>
+std::vector<std::shared_ptr<const Stmt<R>>> Parser<R>::block()
+{
+  std::vector<std::shared_ptr<const Stmt<R>>> statements; 
+
+  while (!check(RIGHT_BRACE) && !isAtEnd())
+    statements.push_back(declaration());
+
+  consume(RIGHT_BRACE, "Expect '}' after block.");
+  return statements;
+}
+
+/**
  * @brief Parses a declaration statement.
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed declaration statement.
@@ -55,37 +72,6 @@ std::shared_ptr<Stmt<R>> Parser<R>::declaration()
 }
 
 /**
- * @brief Parses a statement.
- * @tparam R The type of the expression that will be parsed.
- * @return A smart pointer to the parsed statement.
- */
-template <class R>
-std::shared_ptr<Stmt<R>> Parser<R>::statement()
-{
-  if (match(PRINT)) return printStatement();
-  if (match(LEFT_BRACE)) return std::make_shared<typename Stmt<R>::Block>(block());
-
-  return expressionStatement();
-}
-
-/**
- * @brief Parses a block of statements enclosed in braces.
- * @tparam R The type of the expression that will be parsed.
- * @return A vector of smart pointers to the parsed block statements.
- */
-template <class R>
-std::vector<std::shared_ptr<const Stmt<R>>> Parser<R>::block()
-{
-  std::vector<std::shared_ptr<const Stmt<R>>> statements; 
-
-  while (!check(RIGHT_BRACE) && !isAtEnd())
-    statements.push_back(declaration());
-
-  consume(RIGHT_BRACE, "Expect '}' after block.");
-  return statements;
-}
-
-/**
  * @brief Parses a variable declaration statement.
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed variable declaration statement.
@@ -104,6 +90,103 @@ std::shared_ptr<Stmt<R>> Parser<R>::varDeclaration()
 }
 
 /**
+ * @brief Parses a statement.
+ * @tparam R The type of the expression that will be parsed.
+ * @return A smart pointer to the parsed statement.
+ */
+template <class R>
+std::shared_ptr<Stmt<R>> Parser<R>::statement()
+{
+  if (match(FOR)) return forStatement();
+  if (match(IF)) return ifStatement();
+  if (match(PRINT)) return printStatement();
+  if (match(WHILE)) return whileStatement();
+  if (match(LEFT_BRACE)) return std::make_shared<typename Stmt<R>::Block>(block());
+
+  return expressionStatement();
+}
+
+/**
+ * @brief Parses a 'for' statement.
+ * @tparam R The return type for the expression and statement nodes.
+ * @return A shared pointer to the resulting syntax tree (AST) for the 'for' loop.
+ */
+template<class R>
+std::shared_ptr<Stmt<R>> Parser<R>::forStatement()
+{
+  consume(LEFT_PAREN, "Expect '(' after 'for'.");
+
+  // Parse the initializer.
+  std::shared_ptr<Stmt<R>> initializer;
+  if (match(SEMICOLON))
+    initializer = nullptr;
+  else if (match(VAR))
+    initializer = varDeclaration();
+  else
+    initializer = expressionStatement();
+    
+  // Parse the loop condition.
+  std::shared_ptr<Expr<R>> condition = nullptr;
+  if (!check(SEMICOLON))
+    condition = expression();
+  consume(SEMICOLON, "Expect ';' after loop condition.");
+
+  // Parse the increment expression.
+  std::shared_ptr<Expr<R>> increment = nullptr;
+  if (!check(RIGHT_PAREN))
+    increment = expression();
+  consume(RIGHT_PAREN, "Expect ')' after for clauses.");
+
+  // Parse the loop body.
+  std::shared_ptr<Stmt<R>> body = statement();
+
+  // If there's an increment, wrap the body inside a block that includes the increment.
+  if (increment != nullptr)
+  {
+    std::vector<std::shared_ptr<const Stmt<R>>> body_vec;
+    body_vec.push_back(body);
+    body_vec.push_back(std::make_shared<typename Stmt<R>::Expression>(increment));
+    body = std::make_shared<typename Stmt<R>::Block>(body_vec);
+  }
+
+  // If there's no condition, assume it's 'true' (infinite loop).
+  if (condition == nullptr)
+    condition = std::make_shared<typename Expr<R>::Literal>(true);
+  body = std::make_shared<typename Stmt<R>::While>(condition, body);
+
+  // If there's an initializer, wrap everything in a block with the initializer.
+  if (initializer != nullptr)
+  {
+    std::vector<std::shared_ptr<const Stmt<R>>> body_vec;
+    body_vec.push_back(initializer);
+    body_vec.push_back(body);
+    body = std::make_shared<typename Stmt<R>::Block>(body_vec);
+  }
+  
+  return body;
+}
+
+/**
+ * @brief Parses an if statement.
+ * @tparam R The type of the expression that will be parsed.
+ * @return A smart pointer to the parsed if statement.
+ */
+template <class R>
+std::shared_ptr<Stmt<R>> Parser<R>::ifStatement()
+{
+  consume(LEFT_PAREN, "Expect '(' after 'if'.");
+  std::shared_ptr<Expr<R>> condition = expression();
+  consume(RIGHT_PAREN, "Expect ')' after if condition.");
+
+  std::shared_ptr<Stmt<R>> then_branch = statement();
+  std::shared_ptr<Stmt<R>> else_branch = nullptr;
+  if (match(ELSE))
+    else_branch = statement();
+  
+  return std::make_shared<typename Stmt<R>::If>(condition, then_branch, else_branch);
+}
+
+/**
  * @brief Parses a print statement.
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed print statement.
@@ -115,6 +198,22 @@ std::shared_ptr<Stmt<R>> Parser<R>::printStatement()
   consume(SEMICOLON, "Expect ';' after value.");
 
   return std::make_shared<typename Stmt<R>::Print>(value);
+}
+
+/**
+ * @brief Parses a while statement.
+ * @tparam R The type of the expression that will be parsed.
+ * @return A smart pointer to the parsed while statement.
+ */
+template <class R>
+std::shared_ptr<Stmt<R>> Parser<R>::whileStatement()
+{
+  consume(LEFT_PAREN, "Expect '(' after 'while'.");
+  std::shared_ptr<Expr<R>> condition = expression();
+  consume(RIGHT_PAREN, "Expdct ')' after condition.");
+  std::shared_ptr<Stmt<R>> body = statement();
+
+  return std::make_shared<typename Stmt<R>::While>(condition, body);
 }
 
 /**
@@ -139,7 +238,7 @@ std::shared_ptr<Stmt<R>> Parser<R>::expressionStatement()
 template <class R>
 std::shared_ptr<Expr<R>> Parser<R>::assignment()
 {
-  std::shared_ptr<Expr<R>> expr = conditional();
+  std::shared_ptr<Expr<R>> expr = ternary();
 
   if (match(EQUAL))
   {
@@ -161,21 +260,61 @@ std::shared_ptr<Expr<R>> Parser<R>::assignment()
 }
 
 /**
- * @brief Parses a conditional expression.
+ * @brief Parses a ternary expression.
  * @tparam R The type of the expression that will be parsed.
- * @return A smart pointer to the parsed conditional expression.
+ * @return A smart pointer to the parsed ternary expression.
  */
 template <class R>
-std::shared_ptr<Expr<R>> Parser<R>::conditional()
+std::shared_ptr<Expr<R>> Parser<R>::ternary()
 {
-  std::shared_ptr<Expr<R>> expr = equality();
+  std::shared_ptr<Expr<R>> expr = logicalOr();
 
   if (match(QUESTION_MARK))
   {
     std::shared_ptr<Expr<R>> then_branch = expression();
-    consume(COLON, "Expect ':' after then branch of conditional expression.");
-    std::shared_ptr<Expr<R>> else_branch = conditional();
-    expr = std::make_shared<typename Expr<R>::Conditional>(expr, then_branch, else_branch);
+    consume(COLON, "Expect ':' after then branch of ternary expression.");
+    std::shared_ptr<Expr<R>> else_branch = ternary();
+    expr = std::make_shared<typename Expr<R>::Ternary>(expr, then_branch, else_branch);
+  }
+
+  return expr;
+}
+
+/**
+ * @brief Parses a logical OR expression. 
+ * @tparam R The type of the expression that will be parsed.
+ * @return A smart pointer to the parsed logical OR expression.
+ */
+template <class R>
+std::shared_ptr<Expr<R>> Parser<R>::logicalOr()
+{
+  std::shared_ptr<Expr<R>> expr = logicalAnd();
+
+  while (match(OR))
+  {
+    Token oper = previous();
+    std::shared_ptr<Expr<R>> right = logicalAnd();
+    expr = std::make_shared<typename Expr<R>::Logical>(expr, oper, right);
+  }
+
+  return expr;
+}
+
+/**
+ * @brief Parses a logical AND expression.
+ * @tparam R The type of the expression that will be parsed.
+ * @return A smart pointer to the parsed logical AND expression.
+ */
+template <class R>
+std::shared_ptr<Expr<R>> Parser<R>::logicalAnd()
+{
+  std::shared_ptr<Expr<R>> expr = equality();
+
+  while (match(AND))
+  {
+    Token oper = previous();
+    std::shared_ptr<Expr<R>> right = equality();
+    expr = std::make_shared<typename Expr<R>::Logical>(expr, oper, right);
   }
 
   return expr;

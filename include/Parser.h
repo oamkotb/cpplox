@@ -71,16 +71,28 @@ private:
   std::shared_ptr<Stmt<R>> declaration();
 
   /**
+   * @brief Parses a variable declaration statement.
+   * @return A smart pointer to the parsed variable declaration statement.
+   */
+  std::shared_ptr<Stmt<R>> varDeclaration();
+
+  /**
    * @brief Parses a statement.
    * @return A smart pointer to the parsed statement.
    */
   std::shared_ptr<Stmt<R>> statement();
 
   /**
-   * @brief Parses a variable declaration statement.
-   * @return A smart pointer to the parsed variable declaration statement.
+   * CHANGE THIS COMMENT
    */
-  std::shared_ptr<Stmt<R>> varDeclaration();
+  std::shared_ptr<Stmt<R>> forStatement();
+
+  /**
+   * @brief Parses an if statement.
+   * @tparam R The type of the expression that will be parsed.
+   * @return A smart pointer to the parsed if statement.
+   */
+  std::shared_ptr<Stmt<R>> ifStatement();
 
   /**
    * @brief Parses a print statement.
@@ -88,6 +100,13 @@ private:
    */
   std::shared_ptr<Stmt<R>> printStatement();
   
+  /**
+   * @brief Parses a while statement.
+   * @tparam R The type of the expression that will be parsed.
+   * @return A smart pointer to the parsed while statement.
+   */
+  std::shared_ptr<Stmt<R>> whileStatement();
+
   /**
    * @brief Parses an expression statement.
    * @return A smart pointer to the parsed expression statement.
@@ -102,10 +121,24 @@ private:
   std::shared_ptr<Expr<R>> assignment();
   
   /**
-   * @brief Parses a conditional expression.
-   * @return A smart pointer to the parsed conditional expression.
+   * @brief Parses a ternary expression.
+   * @return A smart pointer to the parsed ternary expression.
    */
-  std::shared_ptr<Expr<R>> conditional();
+  std::shared_ptr<Expr<R>> ternary();
+
+  /**
+   * @brief Parses a logical OR expression. 
+   * @tparam R The type of the expression that will be parsed.
+   * @return A smart pointer to the parsed logical OR expression.
+   */
+  std::shared_ptr<Expr<R>> logicalOr();
+
+  /**
+   * @brief Parses a logical AND expression.
+   * @tparam R The type of the expression that will be parsed.
+   * @return A smart pointer to the parsed logical AND expression.
+   */
+  std::shared_ptr<Expr<R>> logicalAnd();
 
   /**
    * @brief Parses a comma expression.

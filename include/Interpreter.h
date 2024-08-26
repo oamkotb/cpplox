@@ -144,6 +144,43 @@ public:
    */
   LiteralValue visitWhileStmt(const Stmt<LiteralValue>::While& stmt) override;
 
+  
+  /**
+   * Exception to be thrown when a `break` statement is encountered.
+   *
+   * This exception is used to signal the termination of a loop when a 
+   * `break` statement is executed in the interpreted code.
+   */
+  class BreakException : public std::runtime_error
+  {
+  public:
+    BreakException() : std::runtime_error("Break Statement") {}
+  };
+    
+  /**
+   * Exception to be thrown when a `continue` statement is encountered.
+   *
+   * This exception is used to signal the continuation of a loop when a 
+   * `continue` statement is executed in the interpreted code.
+   */
+  class ContinueException : public std::runtime_error
+  {
+  public:
+    ContinueException() : std::runtime_error("Continue statement") {}
+  };
+  
+  /**
+   * @brief Executes a jump statement, such as `break` or `continue`.
+   *
+   *
+   * @param stmt The jump statement to be executed, containing the jump keyword.
+   * @return A `LiteralValue`, though this method typically throws an exception before returning.
+   *
+   * @throws ContinueException If the jump statement is a `continue`.
+   * @throws BreakException If the jump statement is a `break`.
+   */
+  LiteralValue visitJumpStmt(const Stmt<LiteralValue>::Jump& stmt) override;
+
 private:
   Environment _environment;  ///< The environment that stores variables and their values.
 

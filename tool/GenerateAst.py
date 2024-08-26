@@ -168,7 +168,8 @@ def main() -> None:
                         " const std::shared_ptr<const Stmt<R>>& else_branch",
             "Print      : const std::shared_ptr<const Expr<R>>& expression",
             "Var        : const Token& name, const std::shared_ptr<const Expr<R>>& initializer",
-            "While      : const std::shared_ptr<const Expr<R>>& condition, const std::shared_ptr<const Stmt<R>>& body"
+            "While      : const std::shared_ptr<const Expr<R>>& condition, const std::shared_ptr<const Stmt<R>>& body",
+            "Jump      : const Token& keyword",
     ])
     
 if __name__ == "__main__":

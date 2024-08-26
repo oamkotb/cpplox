@@ -101,6 +101,7 @@ std::shared_ptr<Stmt<R>> Parser<R>::statement()
   if (match(IF)) return ifStatement();
   if (match(PRINT)) return printStatement();
   if (match(WHILE)) return whileStatement();
+  if (match(BREAK) || match(CONTINUE)) return jumpStatement();
   if (match(LEFT_BRACE)) return std::make_shared<typename Stmt<R>::Block>(block());
 
   return expressionStatement();
@@ -214,6 +215,22 @@ std::shared_ptr<Stmt<R>> Parser<R>::whileStatement()
   std::shared_ptr<Stmt<R>> body = statement();
 
   return std::make_shared<typename Stmt<R>::While>(condition, body);
+}
+
+/**
+ * @brief Parses a jump statement in the source code.
+ *
+ * This method handles parsing for jump statements such as `break` and `continue`.
+ *
+ * @tparam R The return type used by the visitor pattern.
+ * @return A shared pointer to a `Stmt<R>::Jump` object representing the jump statement.
+ */
+template <class R>
+std::shared_ptr<Stmt<R>> Parser<R>::jumpStatement()
+{
+  Token keyword = previous();
+  consume(SEMICOLON, "Expect ';' after '" + keyword.lexeme + "'.");
+  return std::make_shared<typename Stmt<R>::Jump>(keyword);
 }
 
 /**

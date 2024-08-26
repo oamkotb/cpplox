@@ -264,9 +264,39 @@ LiteralValue Interpreter::visitVarStmt(const Stmt<LiteralValue>::Var& stmt)
 LiteralValue Interpreter::visitWhileStmt(const Stmt<LiteralValue>::While& stmt)
 {
   while (isTruthy(evaluate(stmt.condition)))
-    execute(stmt.body);
-  
+  {
+    try
+    {
+      execute(stmt.body);  
+    }
+    catch (const ContinueException&)
+    {
+      continue;
+    }
+    catch (const BreakException&)
+    {
+      break;
+    }
+  }
   return std::monostate();
+}
+
+/**
+ * @brief Executes a jump statement, such as `break` or `continue`.
+ *
+ *
+ * @param stmt The jump statement to be executed, containing the jump keyword.
+ * @return A `LiteralValue`, though this method typically throws an exception before returning.
+ *
+ * @throws ContinueException If the jump statement is a `continue`.
+ * @throws BreakException If the jump statement is a `break`.
+ */
+LiteralValue Interpreter::visitJumpStmt(const Stmt<LiteralValue>::Jump& stmt)
+{
+  if (stmt.keyword.type == CONTINUE)
+    throw ContinueException();
+  
+  throw BreakException();
 }
 
 /**

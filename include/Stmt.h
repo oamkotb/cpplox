@@ -14,6 +14,7 @@ public:
   class Print;
   class Var;
   class While;
+  class Jump;
 
   struct Visitor
   {
@@ -23,6 +24,7 @@ public:
     virtual R visitPrintStmt(const Stmt<R>::Print& stmt) = 0;
     virtual R visitVarStmt(const Stmt<R>::Var& stmt) = 0;
     virtual R visitWhileStmt(const Stmt<R>::While& stmt) = 0;
+    virtual R visitJumpStmt(const Stmt<R>::Jump& stmt) = 0;
   };
 
   virtual R accept(Visitor& visitor) const = 0;
@@ -120,4 +122,19 @@ public:
 
   const std::shared_ptr<const Expr<R>> condition;
   const std::shared_ptr<const Stmt<R>> body;
+};
+
+template <class R>
+class Stmt<R>::Jump : public Stmt<R>
+{
+public:
+  Jump(const Token& keyword):
+    keyword(keyword) {}
+
+  R accept(Stmt<R>::Visitor& visitor) const override
+  {
+    return visitor.visitJumpStmt(*this);
+  }
+
+  const Token keyword;
 };

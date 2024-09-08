@@ -57,6 +57,8 @@ enum TokenType
   TRUE, /**< Token for keyword 'true' */
   VAR, /**< Token for keyword 'var' */
   WHILE, /**< Token for keyword 'while' */
+  BREAK, /**< Token for keyword 'break' */
+  CONTINUE, /**< Token for keyword 'continue' */
 
   END /**< Token to signify the end of the file */
 };

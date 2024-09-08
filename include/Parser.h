@@ -108,6 +108,16 @@ private:
   std::shared_ptr<Stmt<R>> whileStatement();
 
   /**
+   * @brief Parses a jump statement in the source code.
+   *
+   * This method handles parsing for jump statements such as `break` and `continue`.
+   *
+   * @tparam R The return type used by the visitor pattern.
+   * @return A shared pointer to a `Stmt<R>::Jump` object representing the jump statement.
+   */
+  std::shared_ptr<Stmt<R>> jumpStatement();
+
+  /**
    * @brief Parses an expression statement.
    * @return A smart pointer to the parsed expression statement.
    */

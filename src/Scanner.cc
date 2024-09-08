@@ -22,7 +22,9 @@ Scanner::Scanner(const std::string& source):
     {"this", THIS},
     {"true", TRUE},
     {"var", VAR},
-    {"while", WHILE}
+    {"while", WHILE},
+    {"break", BREAK},
+    {"continue", CONTINUE}
   }) {}
 
 /**

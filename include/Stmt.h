@@ -11,7 +11,9 @@ public:
   class Block;
   class Expression;
   class If;
+  class Function;
   class Print;
+  class Return;
   class Var;
   class While;
   class Jump;
@@ -21,7 +23,9 @@ public:
     virtual R visitBlockStmt(const Stmt<R>::Block& stmt) = 0;
     virtual R visitExpressionStmt(const Stmt<R>::Expression& stmt) = 0;
     virtual R visitIfStmt(const Stmt<R>::If& stmt) = 0;
+    virtual R visitFunctionStmt(const Stmt<R>::Function& stmt) = 0;
     virtual R visitPrintStmt(const Stmt<R>::Print& stmt) = 0;
+    virtual R visitReturnStmt(const Stmt<R>::Return& stmt) = 0;
     virtual R visitVarStmt(const Stmt<R>::Var& stmt) = 0;
     virtual R visitWhileStmt(const Stmt<R>::While& stmt) = 0;
     virtual R visitJumpStmt(const Stmt<R>::Jump& stmt) = 0;
@@ -78,6 +82,23 @@ public:
 };
 
 template <class R>
+class Stmt<R>::Function : public Stmt<R>
+{
+public:
+  Function(const Token& name, const std::vector<Token>& params, const std::vector<std::shared_ptr<const Stmt<R>>>& body):
+    name(name), params(params), body(body) {}
+
+  R accept(Stmt<R>::Visitor& visitor) const override
+  {
+    return visitor.visitFunctionStmt(*this);
+  }
+
+  const Token name;
+  const std::vector<Token> params;
+  const std::vector<std::shared_ptr<const Stmt<R>>> body;
+};
+
+template <class R>
 class Stmt<R>::Print : public Stmt<R>
 {
 public:
@@ -90,6 +111,22 @@ public:
   }
 
   const std::shared_ptr<const Expr<R>> expression;
+};
+
+template <class R>
+class Stmt<R>::Return : public Stmt<R>
+{
+public:
+  Return(const Token& keyword, const std::shared_ptr<const Expr<R>>& value):
+    keyword(keyword), value(value) {}
+
+  R accept(Stmt<R>::Visitor& visitor) const override
+  {
+    return visitor.visitReturnStmt(*this);
+  }
+
+  const Token keyword;
+  const std::shared_ptr<const Expr<R>> value;
 };
 
 template <class R>

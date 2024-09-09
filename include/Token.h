@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
 #include <string>
 #include <variant>
 
@@ -63,8 +64,10 @@ enum TokenType
   END /**< Token to signify the end of the file */
 };
 
+class LoxCallable;
+
 // std::variant is a type safe union monostate acts as empty 
-using LiteralValue = std::variant<std::monostate, std::string, double, bool>;
+using LiteralValue = std::variant<std::monostate, std::string, double, bool, std::shared_ptr<LoxCallable>>;
 
 
 /**

@@ -153,11 +153,13 @@ def main() -> None:
     defineAst(output_dir, "Expr", [
             "Assign      : const Token& name, const std::shared_ptr<const Expr<R>>& value",
             "Binary      : const std::shared_ptr<const Expr<R>>& left, const Token& oper, const std::shared_ptr<const Expr<R>>& right",
+            "Call        : const std::shared_ptr<const Expr<R>>& callee, const Token& paren, const std::vector<std::shared_ptr<const Expr<R>>>& arguments",
             "Grouping    : const std::shared_ptr<const Expr<R>>& expression",
             "Literal     : const LiteralValue& value",
             "Logical     : const std::shared_ptr<const Expr<R>>& left, const Token& oper, const std::shared_ptr<const Expr<R>>& right",
             "Unary       : const Token& oper, const std::shared_ptr<const Expr<R>>& right",
-            "Ternary     : const std::shared_ptr<const Expr<R>>& condition, const std::shared_ptr<const Expr<R>>& then_branch, const std::shared_ptr<const Expr<R>>& else_branch",
+            "Ternary     : const std::shared_ptr<const Expr<R>>& condition, const std::shared_ptr<const Expr<R>>& then_branch," + 
+                         " const std::shared_ptr<const Expr<R>>& else_branch",
             "Variable    : const Token& name"
     ])
 
@@ -166,10 +168,12 @@ def main() -> None:
             "Expression : const std::shared_ptr<const Expr<R>>& expression",
             "If         : const std::shared_ptr<const Expr<R>>& condition, const std::shared_ptr<const Stmt<R>>& then_branch," +
                         " const std::shared_ptr<const Stmt<R>>& else_branch",
+            "Function   : const Token& name, const std::vector<Token>& params, const std::vector<std::shared_ptr<const Stmt<R>>>& body",
             "Print      : const std::shared_ptr<const Expr<R>>& expression",
+            "Return     : const Token& keyword, const std::shared_ptr<const Expr<R>>& value",
             "Var        : const Token& name, const std::shared_ptr<const Expr<R>>& initializer",
             "While      : const std::shared_ptr<const Expr<R>>& condition, const std::shared_ptr<const Stmt<R>>& body",
-            "Jump      : const Token& keyword",
+            "Jump       : const Token& keyword",
     ])
     
 if __name__ == "__main__":

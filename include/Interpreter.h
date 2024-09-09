@@ -8,6 +8,7 @@
 
 #include "Environment.h"
 #include "Expr.h"
+#include "JumpExceptions.h"
 #include "RuntimeError.h"
 #include "Stmt.h"
 #include "Token.h"
@@ -23,6 +24,14 @@
 class Interpreter : public Expr<LiteralValue>::Visitor, public Stmt<LiteralValue>::Visitor
 {
 public:
+  Environment globals; ///< The global environment that stores global variables and their values.
+  Environment environment;  ///< The environment that stores variables and their values.
+
+/**
+ * @brief Initializes the interpreter's global environment and sets up built-in functions.
+ */
+  Interpreter();
+
   /**
    * @brief Interprets a series of statements.
    * 
@@ -37,6 +46,15 @@ public:
    * @return The result of evaluating the binary expression.
    */
   LiteralValue visitBinaryExpr(const Expr<LiteralValue>::Binary& expr) override;
+
+  /**
+   * @brief Evaluates a function or class call expression.
+   *
+   * @param expr The call expression to evaluate, containing the callee, parentheses for validation, and the arguments.
+   * @return The result of calling the callable with the provided arguments.
+   * @throws RuntimeError If the callee is not a function or class, or if the argument count is incorrect.
+   */
+  LiteralValue visitCallExpr(const Expr<LiteralValue>::Call& expr) override;
 
   /**
    * @brief Visits a literal expression and returns its value.
@@ -54,7 +72,7 @@ public:
   LiteralValue visitLogicalExpr(const Expr<LiteralValue>::Logical& expr) override;
 
   /**
-   * @brief Visits a grouping expression and evaluates the expression inside the group.
+   * @brief Visit s a grouping expression and evaluates the expression inside the group.
    * 
    * @param expr The grouping expression to evaluate.
    * @return The result of evaluating the grouped expression.
@@ -115,6 +133,14 @@ public:
   LiteralValue visitExpressionStmt(const Stmt<LiteralValue>::Expression& stmt) override;
 
   /**
+   * @brief Evaluates a function declaration statement.
+   * 
+   * @param stmt The function declaration statement, containing the function's name and its body.
+   * @return Always returns `std::monostate()` since function declarations don't produce a runtime value.
+   */
+  LiteralValue visitFunctionStmt(const Stmt<LiteralValue>::Function& stmt) override;
+
+  /**
    * @brief Evaluates an if statement.
    * @param stmt The if statement to be evaluated.
    * @return A `std::monostate` indicating that the if statement does not return a value.
@@ -128,6 +154,15 @@ public:
    * @return A `std::monostate` indicating that a statement does not return a value.
    */
   LiteralValue visitPrintStmt(const Stmt<LiteralValue>::Print& stmt) override;
+
+  /**
+   * @brief Evaluates a return statement and exits the current function.
+   *
+   * @param stmt The return statement, containing an optional return value expression.
+   * @throw Return Thrown with the evaluated return value, signaling a return from the function.
+   * @return This method does not return a value since it throws an exception to exit the function.
+   */
+  LiteralValue visitReturnStmt(const Stmt<LiteralValue>::Return& stmt) override;
 
   /**
    * @brief Visits a variable declaration statement and adds the variable to the environment.
@@ -144,31 +179,6 @@ public:
    */
   LiteralValue visitWhileStmt(const Stmt<LiteralValue>::While& stmt) override;
 
-  
-  /**
-   * Exception to be thrown when a `break` statement is encountered.
-   *
-   * This exception is used to signal the termination of a loop when a 
-   * `break` statement is executed in the interpreted code.
-   */
-  class BreakException : public std::runtime_error
-  {
-  public:
-    BreakException() : std::runtime_error("Break Statement") {}
-  };
-    
-  /**
-   * Exception to be thrown when a `continue` statement is encountered.
-   *
-   * This exception is used to signal the continuation of a loop when a 
-   * `continue` statement is executed in the interpreted code.
-   */
-  class ContinueException : public std::runtime_error
-  {
-  public:
-    ContinueException() : std::runtime_error("Continue statement") {}
-  };
-  
   /**
    * @brief Executes a jump statement, such as `break` or `continue`.
    *
@@ -181,17 +191,6 @@ public:
    */
   LiteralValue visitJumpStmt(const Stmt<LiteralValue>::Jump& stmt) override;
 
-private:
-  Environment _environment;  ///< The environment that stores variables and their values.
-
-  /**
-   * @brief Evaluates an expression.
-   * 
-   * @param expr A shared pointer to the expression to evaluate.
-   * @return The result of evaluating the expression.
-   */
-  LiteralValue evaluate(const std::shared_ptr<const Expr<LiteralValue>>& expr);
-
   /**
    * @brief Executes a block of statements in a new environment.
    * 
@@ -202,6 +201,15 @@ private:
    */
   void executeBlock(const std::vector<std::shared_ptr<const Stmt<LiteralValue>>>& statements, const Environment& environment);
   
+private:
+  /**
+   * @brief Evaluates an expression.
+   * 
+   * @param expr A shared pointer to the expression to evaluate.
+   * @return The result of evaluating the expression.
+   */
+  LiteralValue evaluate(const std::shared_ptr<const Expr<LiteralValue>>& expr);
+
   /**
    * @brief Executes a statement.
    * 

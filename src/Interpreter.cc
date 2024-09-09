@@ -1,4 +1,16 @@
-#include <Interpreter.h>
+#include "Interpreter.h"
+
+#include "LoxCallable.h"
+#include "LoxFunction.h"
+
+/**
+ * @brief Initializes the interpreter's global environment and sets up built-in functions.
+ */
+Interpreter::Interpreter()
+  : globals(Environment()), environment(globals)
+{
+  globals.define("clock", std::make_shared<ClockCallable>());
+}
 
 /**
  * @brief Interprets a series of statements.
@@ -79,6 +91,34 @@ LiteralValue Interpreter::visitBinaryExpr(const Expr<LiteralValue>::Binary& expr
 }
 
 /**
+ * @brief Evaluates a function or class call expression.
+ *
+ * @param expr The call expression to evaluate, containing the callee, parentheses for validation, and the arguments.
+ * @return The result of calling the callable with the provided arguments.
+ * @throws RuntimeError If the callee is not a function or class, or if the argument count is incorrect.
+ */
+LiteralValue Interpreter::visitCallExpr(const Expr<LiteralValue>::Call& expr)
+{
+  LiteralValue callee = evaluate(expr.callee);
+
+  std::vector<LiteralValue> arguments;
+  for (auto argument : expr.arguments)
+    arguments.push_back(evaluate(argument));
+
+  if (!std::holds_alternative<std::shared_ptr<LoxCallable>>(callee))
+    throw RuntimeError(expr.paren, "Can only call functions and classes.");
+
+  std::shared_ptr<LoxCallable> function = std::get<std::shared_ptr<LoxCallable>>(callee);
+
+  if (arguments.size() != function->arity())
+    throw RuntimeError(expr.paren, "Expected " + 
+      std::to_string(function->arity()) + " arguments, but got " +
+      std::to_string(arguments.size()) + ".");
+
+  return function->call(*this, arguments);
+}
+
+/**
  * @brief Visits a literal expression and returns its value.
  * 
  * @param expr The literal expression to evaluate.
@@ -91,6 +131,7 @@ LiteralValue Interpreter::visitLiteralExpr(const Expr<LiteralValue>::Literal& ex
 
 /**
  * @brief Evaluates a logical expression. 
+ * 
  * @param expr The logical expression to be evaluated.
  * @return The resulting LiteralValue after evaluating the logical expression.
  */
@@ -167,7 +208,7 @@ LiteralValue Interpreter::visitTernaryExpr(const Expr<LiteralValue>::Ternary& ex
  */
 LiteralValue Interpreter::visitVariableExpr(const Expr<LiteralValue>::Variable& expr)
 {
-  return _environment.get(expr.name);
+  return environment.get(expr.name);
 }
 
 /**
@@ -181,7 +222,7 @@ LiteralValue Interpreter::visitVariableExpr(const Expr<LiteralValue>::Variable& 
 LiteralValue Interpreter::visitAssignExpr(const Expr<LiteralValue>::Assign& expr)
 {
   LiteralValue value = evaluate(expr.value);
-  _environment.assign(expr.name, value);
+  environment.assign(expr.name, value);
 
   return value;
 }
@@ -196,7 +237,7 @@ LiteralValue Interpreter::visitAssignExpr(const Expr<LiteralValue>::Assign& expr
  */
 LiteralValue Interpreter::visitBlockStmt(const Stmt<LiteralValue>::Block& stmt)
 {
-  executeBlock(stmt.statements, Environment(std::make_shared<Environment>(_environment)));  
+  executeBlock(stmt.statements, Environment(std::make_shared<Environment>(environment)));  
   return std::monostate();
 }
 
@@ -213,7 +254,22 @@ LiteralValue Interpreter::visitExpressionStmt(const Stmt<LiteralValue>::Expressi
 }
 
 /**
+ * @brief Evaluates a function declaration statement.
+ * 
+ * @param stmt The function declaration statement, containing the function's name and its body.
+ * @return Always returns `std::monostate()` since function declarations don't produce a runtime value.
+ */
+LiteralValue Interpreter::visitFunctionStmt(const Stmt<LiteralValue>::Function& stmt)
+{
+  LoxFunction function(stmt, environment);
+  environment.define(stmt.name.lexeme, std::make_shared<LoxFunction>(function));
+
+  return std::monostate();
+}
+
+/**
  * @brief Evaluates an if statement.
+ * 
  * @param stmt The if statement to be evaluated.
  * @return A `std::monostate` indicating that the if statement does not return a value.
  */
@@ -241,6 +297,23 @@ LiteralValue Interpreter::visitPrintStmt(const Stmt<LiteralValue>::Print& stmt)
 }
 
 /**
+ * @brief Evaluates a return statement and exits the current function.
+ *
+ * @param stmt The return statement, containing an optional return value expression.
+ * @throw Return Thrown with the evaluated return value, signaling a return from the function.
+ * @return This method does not return a value since it throws an exception to exit the function.
+ */
+LiteralValue Interpreter::visitReturnStmt(const Stmt<LiteralValue>::Return& stmt)
+{
+  LiteralValue value = std::monostate();
+
+  if (stmt.value != nullptr)
+    value = evaluate(stmt.value);
+  
+  throw Return(value);
+}
+
+/**
  * @brief Visits a variable declaration statement and adds the variable to the environment.
  * 
  * @param stmt The variable declaration statement to execute.
@@ -252,12 +325,13 @@ LiteralValue Interpreter::visitVarStmt(const Stmt<LiteralValue>::Var& stmt)
   if (stmt.initializer != nullptr)
     value = evaluate(stmt.initializer);
 
-  _environment.define(stmt.name.lexeme, value);
+  environment.define(stmt.name.lexeme, value);
   return std::monostate();
 }
 
 /**
  * @brief Evaluates a while loop statement.
+ * 
  * @param stmt The while statement to be evaluated.
  * @return A `std::monostate` indicating that the while statement does not return a value.
  */
@@ -269,11 +343,11 @@ LiteralValue Interpreter::visitWhileStmt(const Stmt<LiteralValue>::While& stmt)
     {
       execute(stmt.body);  
     }
-    catch (const ContinueException&)
+    catch (const Continue&)
     {
       continue;
     }
-    catch (const BreakException&)
+    catch (const Break&)
     {
       break;
     }
@@ -284,30 +358,18 @@ LiteralValue Interpreter::visitWhileStmt(const Stmt<LiteralValue>::While& stmt)
 /**
  * @brief Executes a jump statement, such as `break` or `continue`.
  *
- *
  * @param stmt The jump statement to be executed, containing the jump keyword.
  * @return A `LiteralValue`, though this method typically throws an exception before returning.
  *
- * @throws ContinueException If the jump statement is a `continue`.
- * @throws BreakException If the jump statement is a `break`.
+ * @throws Continue If the jump statement is a `continue`.
+ * @throws Break If the jump statement is a `break`.
  */
 LiteralValue Interpreter::visitJumpStmt(const Stmt<LiteralValue>::Jump& stmt)
 {
   if (stmt.keyword.type == CONTINUE)
-    throw ContinueException();
+    throw Continue();
   
-  throw BreakException();
-}
-
-/**
- * @brief Evaluates an expression.
- * 
- * @param expr A shared pointer to the expression to evaluate.
- * @return The result of evaluating the expression.
- */
-LiteralValue Interpreter::evaluate(const std::shared_ptr<const Expr<LiteralValue>>& expr)
-{
-  return expr->accept(*this);
+  throw Break();
 }
 
 /**
@@ -320,9 +382,20 @@ LiteralValue Interpreter::evaluate(const std::shared_ptr<const Expr<LiteralValue
  */
 void Interpreter::executeBlock(const std::vector<std::shared_ptr<const Stmt<LiteralValue>>>& statements, const Environment& environment)
 {
-  EnvironmentGuard guard(this->_environment, environment);
+  EnvironmentGuard guard(this->environment, environment);
   for (const std::shared_ptr<const Stmt<LiteralValue>> statement : statements)
     execute(statement);
+}
+
+/**
+ * @brief Evaluates an expression.
+ * 
+ * @param expr A shared pointer to the expression to evaluate.
+ * @return The result of evaluating the expression.
+ */
+LiteralValue Interpreter::evaluate(const std::shared_ptr<const Expr<LiteralValue>>& expr)
+{
+  return expr->accept(*this);
 }
 
 /**

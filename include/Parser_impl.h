@@ -3,6 +3,7 @@
 
 /**
  * @brief Parses the tokens into a list of statements.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A vector of smart pointers to the parsed statements.
  */
@@ -23,6 +24,7 @@ std::vector<std::shared_ptr<Stmt<R>>> Parser<R>::parse()
 
 /**
  * @brief Parses an expression.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed expression.
  */
@@ -34,6 +36,7 @@ std::shared_ptr<Expr<R>> Parser<R>::expression()
 
 /**
  * @brief Parses a block of statements enclosed in braces.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A vector of smart pointers to the parsed block statements.
  */
@@ -51,6 +54,7 @@ std::vector<std::shared_ptr<const Stmt<R>>> Parser<R>::block()
 
 /**
  * @brief Parses a declaration statement.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed declaration statement.
  */
@@ -59,9 +63,8 @@ std::shared_ptr<Stmt<R>> Parser<R>::declaration()
 {
   try
   {
-    if (match(VAR))
-      return varDeclaration();
-
+    if (match(FUN)) return function("function");
+    if (match(VAR)) return varDeclaration();
     return statement();
   }
   catch (const ParseError& error)
@@ -73,6 +76,7 @@ std::shared_ptr<Stmt<R>> Parser<R>::declaration()
 
 /**
  * @brief Parses a variable declaration statement.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed variable declaration statement.
  */
@@ -91,6 +95,7 @@ std::shared_ptr<Stmt<R>> Parser<R>::varDeclaration()
 
 /**
  * @brief Parses a statement.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed statement.
  */
@@ -100,6 +105,7 @@ std::shared_ptr<Stmt<R>> Parser<R>::statement()
   if (match(FOR)) return forStatement();
   if (match(IF)) return ifStatement();
   if (match(PRINT)) return printStatement();
+  if (match(RETURN)) return returnStatement();
   if (match(WHILE)) return whileStatement();
   if (match(BREAK) || match(CONTINUE)) return jumpStatement();
   if (match(LEFT_BRACE)) return std::make_shared<typename Stmt<R>::Block>(block());
@@ -109,6 +115,7 @@ std::shared_ptr<Stmt<R>> Parser<R>::statement()
 
 /**
  * @brief Parses a 'for' statement.
+ * 
  * @tparam R The return type for the expression and statement nodes.
  * @return A shared pointer to the resulting syntax tree (AST) for the 'for' loop.
  */
@@ -169,6 +176,7 @@ std::shared_ptr<Stmt<R>> Parser<R>::forStatement()
 
 /**
  * @brief Parses an if statement.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed if statement.
  */
@@ -189,6 +197,7 @@ std::shared_ptr<Stmt<R>> Parser<R>::ifStatement()
 
 /**
  * @brief Parses a print statement.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed print statement.
  */
@@ -202,7 +211,26 @@ std::shared_ptr<Stmt<R>> Parser<R>::printStatement()
 }
 
 /**
+ * @brief Parses a return statement.
+ * 
+ * @tparam R The type of the expression that will be parsed.
+ * @return A smart pointer to a `Stmt<R>::Return` object, representing the parsed return statement.
+ */
+template <class R>
+std::shared_ptr<Stmt<R>> Parser<R>::returnStatement()
+{
+  Token keyword = previous();
+  std::shared_ptr<Expr<R>> value = nullptr;
+  if (!check(SEMICOLON))
+    value = expression();
+
+  consume(SEMICOLON, "Expect ';' after return value.");
+  return std::make_shared<typename Stmt<R>::Return>(keyword, value);
+}
+
+/**
  * @brief Parses a while statement.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed while statement.
  */
@@ -235,6 +263,7 @@ std::shared_ptr<Stmt<R>> Parser<R>::jumpStatement()
 
 /**
  * @brief Parses an expression statement.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed expression statement.
  */
@@ -248,7 +277,38 @@ std::shared_ptr<Stmt<R>> Parser<R>::expressionStatement()
 }
 
 /**
+ * @brief Parses a function declaration.
+ * 
+ * @param kind A string describing the kind of function being parsed (e.g., "function" or "method").
+ * @return A smart pointer to a `Stmt<R>::Function` object, representing the parsed function declaration.
+ */
+template <class R>
+std::shared_ptr<Stmt<R>> Parser<R>::function(const std::string& kind)
+{
+  Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
+
+  consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
+  std::vector<Token> parameters;
+  if (!check(RIGHT_PAREN))
+  { 
+    do
+    {
+      if (parameters.size() >= 255)
+        error(peek(), "Can't have more than 255 parameters.");   
+
+      parameters.push_back(consume(IDENTIFIER, "Expect parameter name."));
+    } while (match(COMMA));
+  }
+  consume(RIGHT_PAREN, "Expect ')' after parameters.");
+
+  consume(LEFT_BRACE, "Expect '{' before " + kind + " body");
+  std::vector<std::shared_ptr<const Stmt<R>>> body = block();
+  return std::make_shared<typename Stmt<R>::Function>(name, parameters, body);
+}
+
+/**
  * @brief Parses an assignment expression.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed assignment expression.
  */
@@ -278,6 +338,7 @@ std::shared_ptr<Expr<R>> Parser<R>::assignment()
 
 /**
  * @brief Parses a ternary expression.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed ternary expression.
  */
@@ -319,6 +380,7 @@ std::shared_ptr<Expr<R>> Parser<R>::logicalOr()
 
 /**
  * @brief Parses a logical AND expression.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed logical AND expression.
  */
@@ -339,6 +401,7 @@ std::shared_ptr<Expr<R>> Parser<R>::logicalAnd()
 
 /**
  * @brief Parses a comma expression.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed comma expression.
  */
@@ -359,6 +422,7 @@ std::shared_ptr<Expr<R>> Parser<R>::comma()
 
 /**
  * @brief Parses an equality expression.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed equality expression.
  */
@@ -379,6 +443,7 @@ std::shared_ptr<Expr<R>> Parser<R>::equality()
 
 /**
  * @brief Parses a comparison expression.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed comparison expression.
  */
@@ -399,6 +464,7 @@ std::shared_ptr<Expr<R>> Parser<R>::comparison()
 
 /**
  * @brief Parses a term expression.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed term expression.
  */
@@ -419,6 +485,7 @@ std::shared_ptr<Expr<R>> Parser<R>::term()
 
 /**
  * @brief Parses a factor expression.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed factor expression.
  */
@@ -439,6 +506,7 @@ std::shared_ptr<Expr<R>> Parser<R>::factor()
 
 /**
  * @brief Parses a unary expression.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed unary expression.
  */
@@ -452,11 +520,60 @@ std::shared_ptr<Expr<R>> Parser<R>::unary()
     return std::make_shared<typename Expr<R>::Unary>(oper, right);
   }
 
-  return primary();
+  return call();
+}
+
+/**
+ * @brief Parses a function call expression.
+ * 
+ * @return A smart pointer to an `Expr<R>` object representing the parsed function call expression, or the 
+ * primary expression if no call is detected.
+ */
+template <class R>
+std::shared_ptr<Expr<R>> Parser<R>::call()
+{
+  std::shared_ptr<Expr<R>> expr = primary();
+
+  while (true)
+  {
+    if (match(LEFT_PAREN))
+      expr = finishCall(expr);
+    else
+      break;
+  }
+
+  return expr;
+}
+
+/**
+ * @brief Completes the parsing of a function call expression.
+ * 
+ * @param callee A smart pointer to the callee expression, representing the function being called.
+ * @return A smart pointer to an `Expr<R>::Call` object representing the parsed function call expression,
+ * including the callee, the closing parenthesis token, and the list of arguments.
+ */
+template <class R>
+std::shared_ptr<Expr<R>> Parser<R>::finishCall(const std::shared_ptr<const Expr<R>>& callee)
+{
+  std::vector<std::shared_ptr<const Expr<R>>> arguments;
+
+  if (!check(RIGHT_PAREN))
+  {
+    do
+    {
+      if (arguments.size() >= 255)
+        error(peek(), "Can't have more than 255 arguments.");
+      arguments.push_back(assignment());
+    } while (match(COMMA));
+  }
+  Token paren = consume(RIGHT_PAREN, "Expect ')' after arguments.");
+
+  return std::make_shared<typename Expr<R>::Call>(callee, paren, arguments);
 }
 
 /**
  * @brief Parses a primary expression.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed primary expression.
  */
@@ -490,6 +607,7 @@ std::shared_ptr<Expr<R>> Parser<R>::primary()
 
 /**
  * @brief Checks if the current token matches the given type and advances if it does.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @param type The token type to match.
  * @return True if the token matches, otherwise false.
@@ -508,6 +626,7 @@ bool Parser<R>::match(const TokenType& type)
 
 /**
  * @brief Checks if the current token matches any of the given types and advances if it does.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @param types The list of token types to match.
  * @return True if the token matches any of the types, otherwise false.
@@ -526,6 +645,7 @@ bool Parser<R>::match(const std::vector<TokenType>& types)
 
 /**
  * @brief Checks if the current token matches the given type.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @param type The token type to check.
  * @return True if the token matches, otherwise false.
@@ -539,6 +659,7 @@ bool Parser<R>::check(const TokenType& type)
 
 /**
  * @brief Checks if the parser has reached the end of the token list.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return True if at the end, otherwise false.
  */
@@ -550,6 +671,7 @@ bool Parser<R>::isAtEnd()
 
 /**
  * @brief Consumes the current token if it matches the given type, otherwise throws an error.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @param type The token type to consume.
  * @param message The error message if the token doesn't match.
@@ -565,6 +687,7 @@ Token Parser<R>::consume(const TokenType& type, const std::string& message)
 
 /**
  * @brief Peeks at the current token.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return The current token.
  */
@@ -576,6 +699,7 @@ Token Parser<R>::peek()
 
 /**
  * @brief Advances to the next token and returns the previous token.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return The previous token.
  */
@@ -588,6 +712,7 @@ Token Parser<R>::advance()
 
 /**
  * @brief Returns the previous token.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return The previous token.
  */
@@ -599,6 +724,7 @@ Token Parser<R>::previous()
 
 /**
  * @brief Creates a parse error, logs it, and returns a ParseError object.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @param token The token where the error occurred.
  * @param message The error message.
@@ -613,6 +739,7 @@ ParseError Parser<R>::error(const Token& token, const std::string& message)
 
 /**
  * @brief Synchronizes the parser state after an error.
+ * 
  * @tparam R The type of the expression that will be parsed.
  */
 template <class R>

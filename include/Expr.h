@@ -10,6 +10,7 @@ public:
 
   class Assign;
   class Binary;
+  class Call;
   class Grouping;
   class Literal;
   class Logical;
@@ -21,6 +22,7 @@ public:
   {
     virtual R visitAssignExpr(const Expr<R>::Assign& expr) = 0;
     virtual R visitBinaryExpr(const Expr<R>::Binary& expr) = 0;
+    virtual R visitCallExpr(const Expr<R>::Call& expr) = 0;
     virtual R visitGroupingExpr(const Expr<R>::Grouping& expr) = 0;
     virtual R visitLiteralExpr(const Expr<R>::Literal& expr) = 0;
     virtual R visitLogicalExpr(const Expr<R>::Logical& expr) = 0;
@@ -63,6 +65,23 @@ public:
   const std::shared_ptr<const Expr<R>> left;
   const Token oper;
   const std::shared_ptr<const Expr<R>> right;
+};
+
+template <class R>
+class Expr<R>::Call : public Expr<R>
+{
+public:
+  Call(const std::shared_ptr<const Expr<R>>& callee, const Token& paren, const std::vector<std::shared_ptr<const Expr<R>>>& arguments):
+    callee(callee), paren(paren), arguments(arguments) {}
+
+  R accept(Expr<R>::Visitor& visitor) const override
+  {
+    return visitor.visitCallExpr(*this);
+  }
+
+  const std::shared_ptr<const Expr<R>> callee;
+  const Token paren;
+  const std::vector<std::shared_ptr<const Expr<R>>> arguments;
 };
 
 template <class R>

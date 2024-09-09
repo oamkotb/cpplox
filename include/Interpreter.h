@@ -8,6 +8,7 @@
 
 #include "Environment.h"
 #include "Expr.h"
+#include "Return.h"
 #include "RuntimeError.h"
 #include "Stmt.h"
 #include "Token.h"
@@ -145,6 +146,11 @@ public:
    * @return A `std::monostate` indicating that a statement does not return a value.
    */
   LiteralValue visitPrintStmt(const Stmt<LiteralValue>::Print& stmt) override;
+
+  /**
+   * CHANGE THIS COMMENT
+   */
+  LiteralValue visitReturnStmt(const Stmt<LiteralValue>::Return& stmt) override;
 
   /**
    * @brief Visits a variable declaration statement and adds the variable to the environment.

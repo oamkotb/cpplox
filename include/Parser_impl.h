@@ -99,6 +99,7 @@ std::shared_ptr<Stmt<R>> Parser<R>::statement()
   if (match(FOR)) return forStatement();
   if (match(IF)) return ifStatement();
   if (match(PRINT)) return printStatement();
+  if (match(RETURN)) return returnStatement();
   if (match(WHILE)) return whileStatement();
   if (match(BREAK) || match(CONTINUE)) return jumpStatement();
   if (match(LEFT_BRACE)) return std::make_shared<typename Stmt<R>::Block>(block());
@@ -201,6 +202,24 @@ std::shared_ptr<Stmt<R>> Parser<R>::printStatement()
 }
 
 /**
+ * @brief Parses a return statement.
+ * 
+ * @tparam R The type of the expression that will be parsed.
+ * @return A smart pointer to a `Stmt<R>::Return` object, representing the parsed return statement.
+ */
+template <class R>
+std::shared_ptr<Stmt<R>> Parser<R>::returnStatement()
+{
+  Token keyword = previous();
+  std::shared_ptr<Expr<R>> value = nullptr;
+  if (!check(SEMICOLON))
+    value = expression();
+
+  consume(SEMICOLON, "Expect ';' after return value.");
+  return std::make_shared<typename Stmt<R>::Return>(keyword, value);
+}
+
+/**
  * @brief Parses a while statement.
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed while statement.
@@ -234,6 +253,7 @@ std::shared_ptr<Stmt<R>> Parser<R>::jumpStatement()
 
 /**
  * @brief Parses an expression statement.
+ * 
  * @tparam R The type of the expression that will be parsed.
  * @return A smart pointer to the parsed expression statement.
  */
@@ -247,7 +267,10 @@ std::shared_ptr<Stmt<R>> Parser<R>::expressionStatement()
 }
 
 /**
- * CHANGE THIS COMMENT
+ * @brief Parses a function declaration.
+ * 
+ * @param kind A string describing the kind of function being parsed (e.g., "function" or "method").
+ * @return A smart pointer to a `Stmt<R>::Function` object, representing the parsed function declaration.
  */
 template <class R>
 std::shared_ptr<Stmt<R>> Parser<R>::function(const std::string& kind)
@@ -272,6 +295,7 @@ std::shared_ptr<Stmt<R>> Parser<R>::function(const std::string& kind)
   std::vector<std::shared_ptr<const Stmt<R>>> body = block();
   return std::make_shared<typename Stmt<R>::Function>(name, parameters, body);
 }
+
 /**
  * @brief Parses an assignment expression.
  * @tparam R The type of the expression that will be parsed.

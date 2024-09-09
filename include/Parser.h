@@ -101,6 +101,14 @@ private:
   std::shared_ptr<Stmt<R>> printStatement();
   
   /**
+   * @brief Parses a return statement.
+   * 
+   * @tparam R The type of the expression that will be parsed.
+   * @return A smart pointer to a `Stmt<R>::Return` object, representing the parsed return statement.
+   */
+  std::shared_ptr<Stmt<R>> returnStatement();
+
+  /**
    * @brief Parses a while statement.
    * @tparam R The type of the expression that will be parsed.
    * @return A smart pointer to the parsed while statement.

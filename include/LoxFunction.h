@@ -12,8 +12,8 @@ public:
   /**
    * CHANGE THIS COMMENT
    */
-  LoxFunction(const Stmt<LiteralValue>::Function& declaration)
-    : _declaration(declaration) {}
+  LoxFunction(const Stmt<LiteralValue>::Function& declaration, const Environment& closure)
+    : _declaration(declaration), _closure(closure) {}
   
   /**
    * CHANGE THIS COMMENT
@@ -25,13 +25,19 @@ public:
    */
   LiteralValue call(Interpreter& interpreter, const std::vector<LiteralValue> arguments) override
   {
-    Environment environment(interpreter.globals);
-
+    Environment environment = _closure;
+    
     for (size_t i = 0; i < _declaration.params.size(); ++i)
       environment.define(_declaration.params[i].lexeme, arguments[i]);
-    
-    interpreter.executeBlock(_declaration.body, environment);
-
+    try
+    {
+      interpreter.executeBlock(_declaration.body, environment);
+    }
+    catch(const Return& return_value)
+    {
+      return return_value.value;
+    }
+  
     return std::monostate();
   }
 
@@ -42,5 +48,6 @@ public:
   
 private:
   const Stmt<LiteralValue>::Function& _declaration; ///< CHANGE THIS COMMENT
+  const Environment _closure; ///< CHANGE THIS COMMENT
 
 };

@@ -253,7 +253,7 @@ LiteralValue Interpreter::visitExpressionStmt(const Stmt<LiteralValue>::Expressi
  */
 LiteralValue Interpreter::visitFunctionStmt(const Stmt<LiteralValue>::Function& stmt)
 {
-  LoxFunction function(stmt);
+  LoxFunction function(stmt, environment);
   environment.define(stmt.name.lexeme, std::make_shared<LoxFunction>(function));
 
   return std::monostate();
@@ -285,6 +285,19 @@ LiteralValue Interpreter::visitPrintStmt(const Stmt<LiteralValue>::Print& stmt)
   LiteralValue value = evaluate(stmt.expression);
   std::cout << stringify(value) << std::endl;
   return std::monostate();
+}
+
+/**
+ * CHANGE THIS COMMENT
+ */
+LiteralValue Interpreter::visitReturnStmt(const Stmt<LiteralValue>::Return& stmt)
+{
+  LiteralValue value = std::monostate();
+
+  if (stmt.value != nullptr)
+    value = evaluate(stmt.value);
+  
+  throw Return(value);
 }
 
 /**

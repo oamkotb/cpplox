@@ -8,7 +8,7 @@
 
 #include "Environment.h"
 #include "Expr.h"
-#include "Return.h"
+#include "JumpExceptions.h"
 #include "RuntimeError.h"
 #include "Stmt.h"
 #include "Token.h"
@@ -27,9 +27,9 @@ public:
   Environment globals; ///< The global environment that stores global variables and their values.
   Environment environment;  ///< The environment that stores variables and their values.
 
-  /**
-   * CHANGE THIS COMMENT
-   */
+/**
+ * @brief Initializes the interpreter's global environment and sets up built-in functions.
+ */
   Interpreter();
 
   /**
@@ -48,7 +48,11 @@ public:
   LiteralValue visitBinaryExpr(const Expr<LiteralValue>::Binary& expr) override;
 
   /**
-   * CHANGE THIS COMMENT
+   * @brief Evaluates a function or class call expression.
+   *
+   * @param expr The call expression to evaluate, containing the callee, parentheses for validation, and the arguments.
+   * @return The result of calling the callable with the provided arguments.
+   * @throws RuntimeError If the callee is not a function or class, or if the argument count is incorrect.
    */
   LiteralValue visitCallExpr(const Expr<LiteralValue>::Call& expr) override;
 
@@ -129,9 +133,13 @@ public:
   LiteralValue visitExpressionStmt(const Stmt<LiteralValue>::Expression& stmt) override;
 
   /**
-   * CHANGE THIS COMMENT
+   * @brief Evaluates a function declaration statement.
+   * 
+   * @param stmt The function declaration statement, containing the function's name and its body.
+   * @return Always returns `std::monostate()` since function declarations don't produce a runtime value.
    */
   LiteralValue visitFunctionStmt(const Stmt<LiteralValue>::Function& stmt) override;
+
   /**
    * @brief Evaluates an if statement.
    * @param stmt The if statement to be evaluated.
@@ -148,7 +156,11 @@ public:
   LiteralValue visitPrintStmt(const Stmt<LiteralValue>::Print& stmt) override;
 
   /**
-   * CHANGE THIS COMMENT
+   * @brief Evaluates a return statement and exits the current function.
+   *
+   * @param stmt The return statement, containing an optional return value expression.
+   * @throw Return Thrown with the evaluated return value, signaling a return from the function.
+   * @return This method does not return a value since it throws an exception to exit the function.
    */
   LiteralValue visitReturnStmt(const Stmt<LiteralValue>::Return& stmt) override;
 
@@ -167,31 +179,6 @@ public:
    */
   LiteralValue visitWhileStmt(const Stmt<LiteralValue>::While& stmt) override;
 
-  
-  /**
-   * Exception to be thrown when a `break` statement is encountered.
-   *
-   * This exception is used to signal the termination of a loop when a 
-   * `break` statement is executed in the interpreted code.
-   */
-  class BreakException : public std::runtime_error
-  {
-  public:
-    BreakException() : std::runtime_error("Break Statement") {}
-  };
-    
-  /**
-   * Exception to be thrown when a `continue` statement is encountered.
-   *
-   * This exception is used to signal the continuation of a loop when a 
-   * `continue` statement is executed in the interpreted code.
-   */
-  class ContinueException : public std::runtime_error
-  {
-  public:
-    ContinueException() : std::runtime_error("Continue statement") {}
-  };
-  
   /**
    * @brief Executes a jump statement, such as `break` or `continue`.
    *

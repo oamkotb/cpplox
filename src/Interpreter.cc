@@ -4,7 +4,7 @@
 #include "LoxFunction.h"
 
 /**
- * CHANGE THIS COMMENT
+ * @brief Initializes the interpreter's global environment and sets up built-in functions.
  */
 Interpreter::Interpreter()
   : globals(Environment()), environment(globals)
@@ -91,7 +91,11 @@ LiteralValue Interpreter::visitBinaryExpr(const Expr<LiteralValue>::Binary& expr
 }
 
 /**
- * CHANGE THIS COMMENT
+ * @brief Evaluates a function or class call expression.
+ *
+ * @param expr The call expression to evaluate, containing the callee, parentheses for validation, and the arguments.
+ * @return The result of calling the callable with the provided arguments.
+ * @throws RuntimeError If the callee is not a function or class, or if the argument count is incorrect.
  */
 LiteralValue Interpreter::visitCallExpr(const Expr<LiteralValue>::Call& expr)
 {
@@ -127,6 +131,7 @@ LiteralValue Interpreter::visitLiteralExpr(const Expr<LiteralValue>::Literal& ex
 
 /**
  * @brief Evaluates a logical expression. 
+ * 
  * @param expr The logical expression to be evaluated.
  * @return The resulting LiteralValue after evaluating the logical expression.
  */
@@ -249,7 +254,10 @@ LiteralValue Interpreter::visitExpressionStmt(const Stmt<LiteralValue>::Expressi
 }
 
 /**
- * CHANGE THIS COMMENT
+ * @brief Evaluates a function declaration statement.
+ * 
+ * @param stmt The function declaration statement, containing the function's name and its body.
+ * @return Always returns `std::monostate()` since function declarations don't produce a runtime value.
  */
 LiteralValue Interpreter::visitFunctionStmt(const Stmt<LiteralValue>::Function& stmt)
 {
@@ -261,6 +269,7 @@ LiteralValue Interpreter::visitFunctionStmt(const Stmt<LiteralValue>::Function& 
 
 /**
  * @brief Evaluates an if statement.
+ * 
  * @param stmt The if statement to be evaluated.
  * @return A `std::monostate` indicating that the if statement does not return a value.
  */
@@ -288,7 +297,11 @@ LiteralValue Interpreter::visitPrintStmt(const Stmt<LiteralValue>::Print& stmt)
 }
 
 /**
- * CHANGE THIS COMMENT
+ * @brief Evaluates a return statement and exits the current function.
+ *
+ * @param stmt The return statement, containing an optional return value expression.
+ * @throw Return Thrown with the evaluated return value, signaling a return from the function.
+ * @return This method does not return a value since it throws an exception to exit the function.
  */
 LiteralValue Interpreter::visitReturnStmt(const Stmt<LiteralValue>::Return& stmt)
 {
@@ -318,6 +331,7 @@ LiteralValue Interpreter::visitVarStmt(const Stmt<LiteralValue>::Var& stmt)
 
 /**
  * @brief Evaluates a while loop statement.
+ * 
  * @param stmt The while statement to be evaluated.
  * @return A `std::monostate` indicating that the while statement does not return a value.
  */
@@ -329,11 +343,11 @@ LiteralValue Interpreter::visitWhileStmt(const Stmt<LiteralValue>::While& stmt)
     {
       execute(stmt.body);  
     }
-    catch (const ContinueException&)
+    catch (const Continue&)
     {
       continue;
     }
-    catch (const BreakException&)
+    catch (const Break&)
     {
       break;
     }
@@ -344,19 +358,18 @@ LiteralValue Interpreter::visitWhileStmt(const Stmt<LiteralValue>::While& stmt)
 /**
  * @brief Executes a jump statement, such as `break` or `continue`.
  *
- *
  * @param stmt The jump statement to be executed, containing the jump keyword.
  * @return A `LiteralValue`, though this method typically throws an exception before returning.
  *
- * @throws ContinueException If the jump statement is a `continue`.
- * @throws BreakException If the jump statement is a `break`.
+ * @throws Continue If the jump statement is a `continue`.
+ * @throws Break If the jump statement is a `break`.
  */
 LiteralValue Interpreter::visitJumpStmt(const Stmt<LiteralValue>::Jump& stmt)
 {
   if (stmt.keyword.type == CONTINUE)
-    throw ContinueException();
+    throw Continue();
   
-  throw BreakException();
+  throw Break();
 }
 
 /**

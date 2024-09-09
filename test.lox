@@ -1,15 +1,5 @@
-var i = 0;
-while (true)
-{
-  i = i + 1;
-  print "hi";
-  if (i == 2)
-  {
-    continue; 
-  }
-  print "bye";
-  if (i > 5)
-  {
-    break;
-  }
+fun sayHi(first, last) {
+  print "Hi, " + first + " " + last + "!";
 }
+
+sayHi("Dear", "Reader");

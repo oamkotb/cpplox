@@ -124,6 +124,11 @@ private:
   std::shared_ptr<Stmt<R>> expressionStatement();
 
   /**
+   * CHANGE THIS COMMENT
+   */
+  std::shared_ptr<Stmt<R>> function(const std::string& kind);
+
+  /**
    * @brief Parses an assignment expression.
    * @tparam R The type of the expression that will be parsed.
    * @return A smart pointer to the parsed assignment expression.

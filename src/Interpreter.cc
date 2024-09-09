@@ -1,14 +1,15 @@
 #include "Interpreter.h"
 
 #include "LoxCallable.h"
+#include "LoxFunction.h"
 
 /**
  * CHANGE THIS COMMENT
  */
 Interpreter::Interpreter()
-  : global(Environment()), environment(global)
+  : globals(Environment()), environment(globals)
 {
-  
+  globals.define("clock", std::make_shared<ClockCallable>());
 }
 
 /**
@@ -100,7 +101,7 @@ LiteralValue Interpreter::visitCallExpr(const Expr<LiteralValue>::Call& expr)
   for (auto argument : expr.arguments)
     arguments.push_back(evaluate(argument));
 
-  if (std::holds_alternative<std::shared_ptr<LoxCallable>>(callee))
+  if (!std::holds_alternative<std::shared_ptr<LoxCallable>>(callee))
     throw RuntimeError(expr.paren, "Can only call functions and classes.");
 
   std::shared_ptr<LoxCallable> function = std::get<std::shared_ptr<LoxCallable>>(callee);
@@ -248,6 +249,17 @@ LiteralValue Interpreter::visitExpressionStmt(const Stmt<LiteralValue>::Expressi
 }
 
 /**
+ * CHANGE THIS COMMENT
+ */
+LiteralValue Interpreter::visitFunctionStmt(const Stmt<LiteralValue>::Function& stmt)
+{
+  LoxFunction function(stmt);
+  environment.define(stmt.name.lexeme, std::make_shared<LoxFunction>(function));
+
+  return std::monostate();
+}
+
+/**
  * @brief Evaluates an if statement.
  * @param stmt The if statement to be evaluated.
  * @return A `std::monostate` indicating that the if statement does not return a value.
@@ -335,17 +347,6 @@ LiteralValue Interpreter::visitJumpStmt(const Stmt<LiteralValue>::Jump& stmt)
 }
 
 /**
- * @brief Evaluates an expression.
- * 
- * @param expr A shared pointer to the expression to evaluate.
- * @return The result of evaluating the expression.
- */
-LiteralValue Interpreter::evaluate(const std::shared_ptr<const Expr<LiteralValue>>& expr)
-{
-  return expr->accept(*this);
-}
-
-/**
  * @brief Executes a block of statements in a new environment.
  * 
  * Executes a sequence of statements within a new environment, which is a child of the current environment.
@@ -358,6 +359,17 @@ void Interpreter::executeBlock(const std::vector<std::shared_ptr<const Stmt<Lite
   EnvironmentGuard guard(this->environment, environment);
   for (const std::shared_ptr<const Stmt<LiteralValue>> statement : statements)
     execute(statement);
+}
+
+/**
+ * @brief Evaluates an expression.
+ * 
+ * @param expr A shared pointer to the expression to evaluate.
+ * @return The result of evaluating the expression.
+ */
+LiteralValue Interpreter::evaluate(const std::shared_ptr<const Expr<LiteralValue>>& expr)
+{
+  return expr->accept(*this);
 }
 
 /**

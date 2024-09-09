@@ -59,9 +59,8 @@ std::shared_ptr<Stmt<R>> Parser<R>::declaration()
 {
   try
   {
-    if (match(VAR))
-      return varDeclaration();
-
+    if (match(FUN)) return function("function");
+    if (match(VAR)) return varDeclaration();
     return statement();
   }
   catch (const ParseError& error)
@@ -247,6 +246,32 @@ std::shared_ptr<Stmt<R>> Parser<R>::expressionStatement()
   return std::make_shared<typename Stmt<R>::Expression>(expr);
 }
 
+/**
+ * CHANGE THIS COMMENT
+ */
+template <class R>
+std::shared_ptr<Stmt<R>> Parser<R>::function(const std::string& kind)
+{
+  Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
+
+  consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
+  std::vector<Token> parameters;
+  if (!check(RIGHT_PAREN))
+  { 
+    do
+    {
+      if (parameters.size() >= 255)
+        error(peek(), "Can't have more than 255 parameters.");   
+
+      parameters.push_back(consume(IDENTIFIER, "Expect parameter name."));
+    } while (match(COMMA));
+  }
+  consume(RIGHT_PAREN, "Expect ')' after parameters.");
+
+  consume(LEFT_BRACE, "Expect '{' before " + kind + " body");
+  std::vector<std::shared_ptr<const Stmt<R>>> body = block();
+  return std::make_shared<typename Stmt<R>::Function>(name, parameters, body);
+}
 /**
  * @brief Parses an assignment expression.
  * @tparam R The type of the expression that will be parsed.
@@ -470,6 +495,7 @@ std::shared_ptr<Expr<R>> Parser<R>::call()
     else
       break;
   }
+
   return expr;
 }
 
@@ -487,7 +513,7 @@ std::shared_ptr<Expr<R>> Parser<R>::finishCall(const std::shared_ptr<const Expr<
     {
       if (arguments.size() >= 255)
         error(peek(), "Can't have more than 255 arguments.");
-      arguments.push_back(expression());
+      arguments.push_back(assignment());
     } while (match(COMMA));
   }
   Token paren = consume(RIGHT_PAREN, "Expect ')' after arguments.");

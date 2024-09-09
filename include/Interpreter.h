@@ -23,7 +23,7 @@
 class Interpreter : public Expr<LiteralValue>::Visitor, public Stmt<LiteralValue>::Visitor
 {
 public:
-  Environment global; ///< The global environment that stores global variables and their values.
+  Environment globals; ///< The global environment that stores global variables and their values.
   Environment environment;  ///< The environment that stores variables and their values.
 
   /**
@@ -128,6 +128,10 @@ public:
   LiteralValue visitExpressionStmt(const Stmt<LiteralValue>::Expression& stmt) override;
 
   /**
+   * CHANGE THIS COMMENT
+   */
+  LiteralValue visitFunctionStmt(const Stmt<LiteralValue>::Function& stmt) override;
+  /**
    * @brief Evaluates an if statement.
    * @param stmt The if statement to be evaluated.
    * @return A `std::monostate` indicating that the if statement does not return a value.
@@ -194,15 +198,6 @@ public:
    */
   LiteralValue visitJumpStmt(const Stmt<LiteralValue>::Jump& stmt) override;
 
-private:
-  /**
-   * @brief Evaluates an expression.
-   * 
-   * @param expr A shared pointer to the expression to evaluate.
-   * @return The result of evaluating the expression.
-   */
-  LiteralValue evaluate(const std::shared_ptr<const Expr<LiteralValue>>& expr);
-
   /**
    * @brief Executes a block of statements in a new environment.
    * 
@@ -213,6 +208,15 @@ private:
    */
   void executeBlock(const std::vector<std::shared_ptr<const Stmt<LiteralValue>>>& statements, const Environment& environment);
   
+private:
+  /**
+   * @brief Evaluates an expression.
+   * 
+   * @param expr A shared pointer to the expression to evaluate.
+   * @return The result of evaluating the expression.
+   */
+  LiteralValue evaluate(const std::shared_ptr<const Expr<LiteralValue>>& expr);
+
   /**
    * @brief Executes a statement.
    * 

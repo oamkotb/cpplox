@@ -71,7 +71,7 @@ template <class R>
 class Expr<R>::Call : public Expr<R>
 {
 public:
-  Call(const std::shared_ptr<const Expr<R>>& callee, const Token& paren, std::vector<std::shared_ptr<const Expr<R>>>& arguments):
+  Call(const std::shared_ptr<const Expr<R>>& callee, const Token& paren, const std::vector<std::shared_ptr<const Expr<R>>>& arguments):
     callee(callee), paren(paren), arguments(arguments) {}
 
   R accept(Expr<R>::Visitor& visitor) const override
@@ -81,7 +81,7 @@ public:
 
   const std::shared_ptr<const Expr<R>> callee;
   const Token paren;
-  std::vector<std::shared_ptr<const Expr<R>>> arguments;
+  const std::vector<std::shared_ptr<const Expr<R>>> arguments;
 };
 
 template <class R>

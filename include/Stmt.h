@@ -11,6 +11,7 @@ public:
   class Block;
   class Expression;
   class If;
+  class Function;
   class Print;
   class Var;
   class While;
@@ -21,6 +22,7 @@ public:
     virtual R visitBlockStmt(const Stmt<R>::Block& stmt) = 0;
     virtual R visitExpressionStmt(const Stmt<R>::Expression& stmt) = 0;
     virtual R visitIfStmt(const Stmt<R>::If& stmt) = 0;
+    virtual R visitFunctionStmt(const Stmt<R>::Function& stmt) = 0;
     virtual R visitPrintStmt(const Stmt<R>::Print& stmt) = 0;
     virtual R visitVarStmt(const Stmt<R>::Var& stmt) = 0;
     virtual R visitWhileStmt(const Stmt<R>::While& stmt) = 0;
@@ -75,6 +77,23 @@ public:
   const std::shared_ptr<const Expr<R>> condition;
   const std::shared_ptr<const Stmt<R>> then_branch;
   const std::shared_ptr<const Stmt<R>> else_branch;
+};
+
+template <class R>
+class Stmt<R>::Function : public Stmt<R>
+{
+public:
+  Function(const Token& name, const std::vector<Token>& params, const std::vector<std::shared_ptr<const Stmt<R>>>& body):
+    name(name), params(params), body(body) {}
+
+  R accept(Stmt<R>::Visitor& visitor) const override
+  {
+    return visitor.visitFunctionStmt(*this);
+  }
+
+  const Token name;
+  const std::vector<Token> params;
+  const std::vector<std::shared_ptr<const Stmt<R>>> body;
 };
 
 template <class R>

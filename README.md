@@ -20,7 +20,7 @@ git clone https://github.com/oamkotb/cpplox
 cd cpplox
 ```
 
-3. Run the make file:
+3. Run the Makefile:
 ```bash
 make
 ```

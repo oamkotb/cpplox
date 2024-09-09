@@ -33,5 +33,5 @@ Run interactive prompt:
 
 Run a Lox file:
 ```bash
-./build/cpplox [.lox file]
+./build/cpplox [lox file]
 ```

@@ -187,6 +187,16 @@ private:
   std::shared_ptr<Expr<R>> unary();
 
   /**
+   * CHANGE THIS COMMENT
+   */
+  std::shared_ptr<Expr<R>> call();
+
+  /**
+   * CHANGE THIS COMMENT
+   */
+  std::shared_ptr<Expr<R>> finishCall(const std::shared_ptr<const Expr<R>>& callee);
+  
+  /**
    * @brief Parses a primary expression.
    * @return A smart pointer to the parsed primary expression.
    */

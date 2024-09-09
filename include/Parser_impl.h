@@ -452,7 +452,47 @@ std::shared_ptr<Expr<R>> Parser<R>::unary()
     return std::make_shared<typename Expr<R>::Unary>(oper, right);
   }
 
-  return primary();
+  return call();
+}
+
+/**
+ * CHANGE THIS COMMENT
+ */
+template <class R>
+std::shared_ptr<Expr<R>> Parser<R>::call()
+{
+  std::shared_ptr<Expr<R>> expr = primary();
+
+  while (true)
+  {
+    if (match(LEFT_PAREN))
+      expr = finishCall(expr);
+    else
+      break;
+  }
+  return expr;
+}
+
+/**
+ * CHANGE THIS COMMENT
+ */
+template <class R>
+std::shared_ptr<Expr<R>> Parser<R>::finishCall(const std::shared_ptr<const Expr<R>>& callee)
+{
+  std::vector<std::shared_ptr<const Expr<R>>> arguments;
+
+  if (!check(RIGHT_PAREN))
+  {
+    do
+    {
+      if (arguments.size() >= 255)
+        error(peek(), "Can't have more than 255 arguments.");
+      arguments.push_back(expression());
+    } while (match(COMMA));
+  }
+  Token paren = consume(RIGHT_PAREN, "Expect ')' after arguments.");
+
+  return std::make_shared<typename Expr<R>::Call>(callee, paren, arguments);
 }
 
 /**

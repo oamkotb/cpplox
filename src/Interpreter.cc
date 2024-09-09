@@ -1,4 +1,15 @@
-#include <Interpreter.h>
+#include "Interpreter.h"
+
+#include "LoxCallable.h"
+
+/**
+ * CHANGE THIS COMMENT
+ */
+Interpreter::Interpreter()
+  : global(Environment()), environment(global)
+{
+  
+}
 
 /**
  * @brief Interprets a series of statements.
@@ -76,6 +87,30 @@ LiteralValue Interpreter::visitBinaryExpr(const Expr<LiteralValue>::Binary& expr
     default:
       return std::monostate();
   }
+}
+
+/**
+ * CHANGE THIS COMMENT
+ */
+LiteralValue Interpreter::visitCallExpr(const Expr<LiteralValue>::Call& expr)
+{
+  LiteralValue callee = evaluate(expr.callee);
+
+  std::vector<LiteralValue> arguments;
+  for (auto argument : expr.arguments)
+    arguments.push_back(evaluate(argument));
+
+  if (std::holds_alternative<std::shared_ptr<LoxCallable>>(callee))
+    throw RuntimeError(expr.paren, "Can only call functions and classes.");
+
+  std::shared_ptr<LoxCallable> function = std::get<std::shared_ptr<LoxCallable>>(callee);
+
+  if (arguments.size() != function->arity())
+    throw RuntimeError(expr.paren, "Expected " + 
+      std::to_string(function->arity()) + " arguments, but got " +
+      std::to_string(arguments.size()) + ".");
+
+  return function->call(*this, arguments);
 }
 
 /**
@@ -167,7 +202,7 @@ LiteralValue Interpreter::visitTernaryExpr(const Expr<LiteralValue>::Ternary& ex
  */
 LiteralValue Interpreter::visitVariableExpr(const Expr<LiteralValue>::Variable& expr)
 {
-  return _environment.get(expr.name);
+  return environment.get(expr.name);
 }
 
 /**
@@ -181,7 +216,7 @@ LiteralValue Interpreter::visitVariableExpr(const Expr<LiteralValue>::Variable& 
 LiteralValue Interpreter::visitAssignExpr(const Expr<LiteralValue>::Assign& expr)
 {
   LiteralValue value = evaluate(expr.value);
-  _environment.assign(expr.name, value);
+  environment.assign(expr.name, value);
 
   return value;
 }
@@ -196,7 +231,7 @@ LiteralValue Interpreter::visitAssignExpr(const Expr<LiteralValue>::Assign& expr
  */
 LiteralValue Interpreter::visitBlockStmt(const Stmt<LiteralValue>::Block& stmt)
 {
-  executeBlock(stmt.statements, Environment(std::make_shared<Environment>(_environment)));  
+  executeBlock(stmt.statements, Environment(std::make_shared<Environment>(environment)));  
   return std::monostate();
 }
 
@@ -252,7 +287,7 @@ LiteralValue Interpreter::visitVarStmt(const Stmt<LiteralValue>::Var& stmt)
   if (stmt.initializer != nullptr)
     value = evaluate(stmt.initializer);
 
-  _environment.define(stmt.name.lexeme, value);
+  environment.define(stmt.name.lexeme, value);
   return std::monostate();
 }
 
@@ -320,7 +355,7 @@ LiteralValue Interpreter::evaluate(const std::shared_ptr<const Expr<LiteralValue
  */
 void Interpreter::executeBlock(const std::vector<std::shared_ptr<const Stmt<LiteralValue>>>& statements, const Environment& environment)
 {
-  EnvironmentGuard guard(this->_environment, environment);
+  EnvironmentGuard guard(this->environment, environment);
   for (const std::shared_ptr<const Stmt<LiteralValue>> statement : statements)
     execute(statement);
 }

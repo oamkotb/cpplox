@@ -153,6 +153,7 @@ def main() -> None:
     defineAst(output_dir, "Expr", [
             "Assign      : const Token& name, const std::shared_ptr<const Expr<R>>& value",
             "Binary      : const std::shared_ptr<const Expr<R>>& left, const Token& oper, const std::shared_ptr<const Expr<R>>& right",
+            "Call        : const std::shared_ptr<const Expr<R>>& callee, const Token& paren, std::vector<std::shared_ptr<const Expr<R>>>& arguments",
             "Grouping    : const std::shared_ptr<const Expr<R>>& expression",
             "Literal     : const LiteralValue& value",
             "Logical     : const std::shared_ptr<const Expr<R>>& left, const Token& oper, const std::shared_ptr<const Expr<R>>& right",
@@ -169,7 +170,7 @@ def main() -> None:
             "Print      : const std::shared_ptr<const Expr<R>>& expression",
             "Var        : const Token& name, const std::shared_ptr<const Expr<R>>& initializer",
             "While      : const std::shared_ptr<const Expr<R>>& condition, const std::shared_ptr<const Stmt<R>>& body",
-            "Jump      : const Token& keyword",
+            "Jump       : const Token& keyword",
     ])
     
 if __name__ == "__main__":

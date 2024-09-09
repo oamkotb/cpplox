@@ -23,6 +23,14 @@
 class Interpreter : public Expr<LiteralValue>::Visitor, public Stmt<LiteralValue>::Visitor
 {
 public:
+  Environment global; ///< The global environment that stores global variables and their values.
+  Environment environment;  ///< The environment that stores variables and their values.
+
+  /**
+   * CHANGE THIS COMMENT
+   */
+  Interpreter();
+
   /**
    * @brief Interprets a series of statements.
    * 
@@ -37,6 +45,11 @@ public:
    * @return The result of evaluating the binary expression.
    */
   LiteralValue visitBinaryExpr(const Expr<LiteralValue>::Binary& expr) override;
+
+  /**
+   * CHANGE THIS COMMENT
+   */
+  LiteralValue visitCallExpr(const Expr<LiteralValue>::Call& expr) override;
 
   /**
    * @brief Visits a literal expression and returns its value.
@@ -54,7 +67,7 @@ public:
   LiteralValue visitLogicalExpr(const Expr<LiteralValue>::Logical& expr) override;
 
   /**
-   * @brief Visits a grouping expression and evaluates the expression inside the group.
+   * @brief Visit s a grouping expression and evaluates the expression inside the group.
    * 
    * @param expr The grouping expression to evaluate.
    * @return The result of evaluating the grouped expression.
@@ -182,8 +195,6 @@ public:
   LiteralValue visitJumpStmt(const Stmt<LiteralValue>::Jump& stmt) override;
 
 private:
-  Environment _environment;  ///< The environment that stores variables and their values.
-
   /**
    * @brief Evaluates an expression.
    * 

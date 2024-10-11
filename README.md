@@ -1,7 +1,7 @@
 
 # CppLox
 
-CppLox is a C++ implementation of the JLox compiler, offering full functional parity with the original. It serves as a Tree-Walk Interpreter for Lox, a dynamically typed, interpreted scripting language designed by Bob Nystrom for his book [Crafting Interpreters](https://craftinginterpreters.com/).
+CppLox is a C++ implementation of the JLox compiler, offering full functional parity with the original. It serves as a Tree-Walk Interpreter for Lox, a dynamically typed, interpreted scripting language designed by Robert Nystrom for his book [Crafting Interpreters](https://craftinginterpreters.com/).
 
 ## Getting Started
 ### Prerequisites
